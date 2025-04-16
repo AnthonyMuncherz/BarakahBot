@@ -1,7 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 
 // Banner component for the "BarakahBot is Based on Malaysia" text
 const Banner = () => {
@@ -29,12 +28,18 @@ const Hero = () => {
               BarakahBot is the first security-first charity and donation platform in Malaysia. With AI-powered guidance and verified campaigns, we ensure every donation is safe, transparent, and Shariah-compliant.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90">
+              <Link
+                href="/share"
+                className="inline-block px-6 py-3 bg-[#E8F5E9] text-[#1A4D2E] font-medium rounded-md hover:bg-[#D1E7DD] transition-colors text-center"
+              >
                 Start Sharing Securely
-              </Button>
-              <Button variant="link" size="lg" asChild className="text-brand-dark-green">
-                <Link href="#how-we-protect">See How We Protect Your Donations</Link>
-              </Button>
+              </Link>
+              <Link
+                href="#how-we-protect"
+                className="inline-block px-6 py-3 text-[#1A4D2E] font-medium hover:underline transition-colors"
+              >
+                See How We Protect Your Donations
+              </Link>
             </div>
           </div>
           

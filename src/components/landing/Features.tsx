@@ -48,7 +48,10 @@ const Features = () => {
               </li>
             ))}
           </ul>
-          <Link href="/about" className="text-primary font-medium hover:underline">
+          <Link 
+            href="/about" 
+            className="inline-block text-[#1A4D2E] font-medium hover:underline"
+          >
             More about BarakahBot
           </Link>
         </div>

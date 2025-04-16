@@ -13,11 +13,12 @@ const Cta = () => {
           <h2 className="text-3xl md:text-4xl font-bold leading-tight">
             Let's show our mutual concern by helping those who are less fortunate. With BarakahBot, you can channel some of your fortune to help our relatives in need with transparency, trust and honesty
           </h2>
-          <Button size="lg" className="bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90" asChild>
-            <Link href="/donate"> {/* Assuming a general donate page */}
-              Donate now
-            </Link>
-          </Button>
+          <Link 
+            href="/donate" 
+            className="inline-block px-8 py-3 bg-[#E8F5E9] text-[#1A4D2E] font-medium rounded-md hover:bg-[#D1E7DD] transition-colors"
+          >
+            Donate now
+          </Link>
         </div>
 
         {/* Image/Video Placeholder */}

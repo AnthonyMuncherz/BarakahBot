@@ -1,8 +1,21 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
+  const pathname = usePathname();
+  
+  // Navigation items with their paths
+  const navItems = [
+    { name: 'Home', path: '/' },
+    { name: 'ZakatBot', path: '/zakatbot' },
+    { name: 'Campaigns', path: '/campaigns' },
+    { name: 'Dashboard', path: '/dashboard' },
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container max-w-screen-xl mx-auto flex h-16 items-center justify-between px-4">
@@ -12,31 +25,23 @@ const Navbar = () => {
           </Link>
         </div>
         
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link
-            href="/"
-            className="font-medium text-brand-dark-green hover:text-brand-dark-green/80"
-          >
-            Home
-          </Link>
-          <Link
-            href="/zakatbot"
-            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
-          >
-            ZakatBot
-          </Link>
-          <Link
-            href="/campaigns"
-            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
-          >
-            Campaigns
-          </Link>
-          <Link
-            href="/dashboard"
-            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
-          >
-            Dashboard
-          </Link>
+        <nav className="hidden md:flex items-center space-x-4">
+          {navItems.map((item) => {
+            const isActive = pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  isActive 
+                    ? 'bg-[#1A4D2E] text-white' 
+                    : 'text-brand-dark-green/70 hover:text-brand-dark-green hover:bg-brand-light-green/20'
+                }`}
+              >
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
 
         <div>
