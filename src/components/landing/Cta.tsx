@@ -7,7 +7,7 @@ import { PlayCircle } from 'lucide-react';
 const Cta = () => {
   return (
     <section className="bg-primary text-primary-foreground py-16 md:py-24">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div className="container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         {/* Text Content */}
         <div className="space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold leading-tight">

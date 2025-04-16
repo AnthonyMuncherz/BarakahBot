@@ -24,7 +24,7 @@ const features = [
 const Features = () => {
   return (
     <section className="py-16 md:py-24 bg-secondary/30" id="how-we-protect">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div className="container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         {/* Image */}
         <div className="order-last md:order-first">
           {/* Placeholder div instead of image */}

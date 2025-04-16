@@ -35,7 +35,7 @@ const programs = [
 const Programs = () => {
   return (
     <section className="py-16 md:py-24">
-      <div className="container mx-auto">
+      <div className="container max-w-screen-xl mx-auto">
         <div className="mb-8">
           <h2 className="text-3xl md:text-4xl font-bold">
             We invite you to share securely in these donation program hosted by our verified charity organizers

@@ -5,39 +5,42 @@ import { Button } from '@/components/ui/button';
 const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          {/* Add Logo Here if available, otherwise text */}
-          <span className="font-bold sm:inline-block text-xl">BarakahBot</span>
-        </Link>
-        <nav className="flex items-center gap-4 text-sm lg:gap-6">
+      <div className="container max-w-screen-xl mx-auto flex h-16 items-center justify-between px-4">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center">
+            <span className="font-bold text-xl text-brand-dark-green">BarakahBot</span>
+          </Link>
+        </div>
+        
+        <nav className="hidden md:flex items-center space-x-8">
           <Link
             href="/"
-            className="transition-colors hover:text-foreground/80 text-foreground/60 font-medium"
+            className="font-medium text-brand-dark-green hover:text-brand-dark-green/80"
           >
             Home
           </Link>
           <Link
-            href="/zakatbot" // Assuming a ZakatBot page route
-            className="transition-colors hover:text-foreground/80 text-foreground/60 font-medium"
+            href="/zakatbot"
+            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
           >
             ZakatBot
           </Link>
           <Link
-            href="/campaigns" // Assuming a Campaigns page route
-            className="transition-colors hover:text-foreground/80 text-foreground/60 font-medium"
+            href="/campaigns"
+            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
           >
             Campaigns
           </Link>
           <Link
-            href="/dashboard" // Assuming a Dashboard page route
-            className="transition-colors hover:text-foreground/80 text-foreground/60 font-medium"
+            href="/dashboard"
+            className="font-medium text-brand-dark-green/70 hover:text-brand-dark-green"
           >
             Dashboard
           </Link>
         </nav>
-        <div className="flex flex-1 items-center justify-end space-x-2">
-          <Button variant="ghost" asChild>
+
+        <div>
+          <Button variant="ghost" className="text-brand-dark-green font-medium" asChild>
             <Link href="/login">Login</Link>
           </Button>
         </div>
