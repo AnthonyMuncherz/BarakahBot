@@ -1,94 +1,120 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, RefreshCw, Calculator as CalculatorIcon, X } from 'lucide-react';
 import Calculator from './Calculator';
+import ReactMarkdown from 'react-markdown';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose, // Assuming DialogClose is available
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface Message {
   id: string;
+  role: 'user' | 'assistant' | 'system'; // Updated role
   content: string;
-  sender: 'user' | 'bot';
   timestamp: Date;
 }
 
 const ChatInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  const initialMessage: Message = {
       id: '1',
+      role: 'assistant',
       content: 'Assalamualaikum! I\'m ZakatBot, your assistant for Zakat calculation and guidance. How can I help you today?',
-      sender: 'bot',
       timestamp: new Date(),
-    },
-  ]);
-  
+    };
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputMessage.trim()) return;
+    const trimmedInput = inputMessage.trim();
+    if (!trimmedInput) return;
     
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
-      sender: 'user',
+      role: 'user',
+      content: trimmedInput,
       timestamp: new Date(),
     };
     
-    setMessages([...messages, userMessage]);
+    // Add user message immediately and clear input
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputMessage('');
     setIsLoading(true);
     
-    if (inputMessage.toLowerCase().includes('calculate') || 
-        inputMessage.toLowerCase().includes('calculator') ||
-        inputMessage.toLowerCase().includes('computation')) {
-      setTimeout(() => {
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          content: "I can help you calculate your Zakat. I've opened the calculator for you. Please enter your assets, and I'll calculate the amount of Zakat you need to pay.",
-          sender: 'bot',
-          timestamp: new Date(),
-        };
+    // Check for calculator keyword before sending to API
+    if (trimmedInput.toLowerCase().includes('calculate') || 
+        trimmedInput.toLowerCase().includes('calculator') ||
+        trimmedInput.toLowerCase().includes('computation')) {
         
-        setMessages(prevMessages => [...prevMessages, botMessage]);
-        setIsLoading(false);
-        setShowCalculator(true); // Open the dialog
-      }, 1000);
-      return;
-    }
-    
-    setTimeout(() => {
-      const botResponses = [
-        "Zakat is one of the five pillars of Islam. It's obligatory for Muslims who have wealth above a certain threshold (nisab).",
-        "The standard nisab is approximately the value of 85 grams of gold or 595 grams of silver.",
-        "For most wealth (money, gold, silver), the Zakat rate is 2.5% of the total value.",
-        "I can help you calculate your Zakat based on your assets. Type 'calculate' or 'calculator' to open the Zakat calculator.",
-        "You only pay Zakat on assets you've owned for a full lunar year (hawl).",
-        "For business inventory, you calculate Zakat on the market value of goods.",
-      ];
-      
       const botMessage: Message = {
-        id: Date.now().toString(),
-        content: botResponses[Math.floor(Math.random() * botResponses.length)],
-        sender: 'bot',
+        id: Date.now().toString() + '-calc-trigger',
+        role: 'assistant',
+        content: "I can help you calculate your Zakat. I've opened the calculator for you. Please enter your assets, and I'll calculate the amount of Zakat you need to pay.",
         timestamp: new Date(),
       };
       
       setMessages(prevMessages => [...prevMessages, botMessage]);
       setIsLoading(false);
-    }, 1000);
+      setShowCalculator(true); // Open the dialog
+      return; // Don't send calculator requests to the API
+    }
+    
+    // Prepare messages for API (only user and assistant roles)
+    const apiMessages = newMessages.filter(msg => msg.role === 'user' || msg.role === 'assistant').map(msg => ({ role: msg.role, content: msg.content }));
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: apiMessages }), // Send relevant message history
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      const botReply: Message = {
+        id: Date.now().toString() + '-bot',
+        role: 'assistant',
+        content: data.reply || "Sorry, I couldn't get a response.",
+        timestamp: new Date(),
+      };
+      
+      setMessages(prevMessages => [...prevMessages, botReply]);
+
+    } catch (error) {
+      console.error("Failed to fetch chat response:", error);
+      const errorMessage: Message = {
+        id: Date.now().toString() + '-error',
+        role: 'assistant',
+        content: "Sorry, I encountered an error trying to respond. Please try again later.",
+        timestamp: new Date(),
+      };
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCalculation = (amount: number) => {
@@ -100,9 +126,9 @@ const ChatInterface = () => {
     });
     
     const calculationMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now().toString() + '-calc-result',
+      role: 'assistant',
       content: `Based on the assets you provided, your Zakat amount is ${formattedAmount}. Would you like to proceed with payment or have any other questions?`,
-      sender: 'bot',
       timestamp: new Date(),
     };
     
@@ -113,7 +139,7 @@ const ChatInterface = () => {
   return (
     <div className="max-w-[900px] mx-auto">
       {/* Chat messages */}
-      <div className={`flex flex-col h-[700px] rounded-lg border border-border shadow-sm overflow-hidden bg-card lg:col-span-12`}>
+      <div className={`flex flex-col h-[700px] rounded-lg border border-border shadow-sm overflow-hidden bg-card`}>
         <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-muted/30">
           <div className="flex items-center gap-2">
             <Bot size={20} className="text-primary" />
@@ -129,23 +155,23 @@ const ChatInterface = () => {
           </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
           {messages.map((message) => (
             <div 
               key={message.id} 
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div 
                 className={`
                   max-w-[85%] px-5 py-4 rounded-2xl 
-                  ${message.sender === 'user' 
+                  ${message.role === 'user' 
                     ? 'bg-secondary text-secondary-foreground rounded-tr-none' 
                     : 'bg-muted text-primary rounded-tl-none'
                   }
                 `}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {message.sender === 'bot' 
+                  {message.role === 'assistant' 
                     ? <Bot size={16} className="text-primary" /> 
                     : <User size={16} className="text-secondary-foreground" />
                   }
@@ -153,7 +179,14 @@ const ChatInterface = () => {
                     {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                   </span>
                 </div>
-                <p className="text-base">{message.content}</p>
+                {/* Conditionally render markdown for assistant or plain text for user */}
+                {message.role === 'assistant' ? (
+                  <div className="prose prose-sm max-w-none dark:prose-invert"> {/* Apply prose styling */}
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-base whitespace-pre-wrap">{message.content}</p>
+                )}
               </div>
             </div>
           ))}
@@ -181,13 +214,14 @@ const ChatInterface = () => {
               className="flex-1 px-5 py-3 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring text-base"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
+              disabled={isLoading} // Disable input while loading
             />
             <button 
               type="submit" 
               className="p-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               disabled={!inputMessage.trim() || isLoading}
             >
-              <Send size={20} />
+              {isLoading ? <RefreshCw size={20} className="animate-spin" /> : <Send size={20} />}
             </button>
           </form>
         </div>
@@ -206,8 +240,6 @@ const ChatInterface = () => {
              {/* Embed the Calculator component here */}
             <Calculator onCalculate={handleCalculation} />
           </div>
-          {/* DialogFooter can be removed if the Calculator component handles its own submission */}
-          {/* Or add a close button if needed */}
         </DialogContent>
       </Dialog>
     </div>
