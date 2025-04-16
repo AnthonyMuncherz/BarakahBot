@@ -139,7 +139,7 @@ const ChatInterface = () => {
   return (
     <div className="max-w-[900px] mx-auto">
       {/* Chat messages */}
-      <div className={`flex flex-col h-[700px] rounded-lg border border-border shadow-sm overflow-hidden bg-card`}>
+      <div className={`flex flex-col h-[850px] rounded-lg border border-border shadow-sm overflow-hidden bg-card`}>
         <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-muted/30">
           <div className="flex items-center gap-2">
             <Bot size={20} className="text-primary" />
