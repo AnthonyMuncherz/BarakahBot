@@ -76,9 +76,8 @@ const Navbar = () => {
               <Button variant="ghost" className="text-brand-dark-green font-medium" asChild>
                 <Link href="/login">Login</Link>
               </Button>
-              {/* Ensure no conflicting text color class */}
-              <Button variant="default" className="bg-brand-dark-green hover:bg-brand-dark-green/90" asChild>
-                 <Link href="/register">Register</Link>
+              <Button variant="default" asChild>
+                <Link href="/register">Register</Link>
               </Button>
             </>
           )}
