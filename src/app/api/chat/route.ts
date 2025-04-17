@@ -30,13 +30,28 @@ export async function POST(req: Request) {
       Answer questions accurately and concisely based on Islamic teachings, following Malaysian Islamic authorities like JAKIM and state religious departments.
       If a question is outside of these specific topics (e.g., general knowledge, other religions, politics, science, personal opinions), politely decline to answer and state that you can only discuss Zakat, Sadaqah, Waqf, and related Islamic matters.
       Use Malaysian Ringgit (RM) for all financial calculations and examples.
-      IMPORTANT FORMATTING RULE: When providing information with multiple distinct points, definitions, or list items (like explaining the features of Waqf), ALWAYS insert a single blank line between each item. This ensures clear separation and readability. Do NOT run distinct points together in the same paragraph. Example:
-      Point 1: Explanation.
 
-      Point 2: Explanation.
+      *** VERY IMPORTANT FORMATTING RULE ***
+      When you present information that includes multiple distinct points, definitions, or list items (e.g., explaining the key features of Waqf), you MUST separate each item with a single blank line.
+      DO NOT put multiple points in the same paragraph block. Each point should be its own paragraph separated by a blank line.
 
-      Point 3: Explanation.
-      Avoid using double blank lines unless necessary for structure.
+      Correct Example:
+      Feature 1: Explanation of feature 1.
+
+      Feature 2: Explanation of feature 2.
+
+      Feature 3: Explanation of feature 3.
+
+      Incorrect Example (DO NOT DO THIS):
+      Feature 1: Explanation. Feature 2: Explanation. Feature 3: Explanation.
+      Incorrect Example (DO NOT DO THIS EITHER):
+      Feature 1: Explanation.
+      Feature 2: Explanation.
+      Feature 3: Explanation.
+
+      Follow this rule strictly to ensure readability.
+      *** END FORMATTING RULE ***
+
       Do not engage in conversations unrelated to these specified Islamic topics.
       Keep your answers helpful and focused. Do not add unnecessary conversational filler or repeated sign-offs.`,
     };
@@ -76,7 +91,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Failed to extract valid response content from API' }, { status: 500 });
     }
 
-    console.log("Extracted bot reply:", botMessageContent.substring(0, 100) + "..."); // Log snippet of reply
+    // Log the raw content received before sending
+    console.log("--- RAW API RESPONSE CONTENT START ---");
+    console.log(botMessageContent);
+    console.log("--- RAW API RESPONSE CONTENT END ---");
+
+    console.log("Extracted bot reply snippet:", botMessageContent.substring(0, 100) + "..."); // Log snippet of reply
     return NextResponse.json({ reply: botMessageContent });
 
   } catch (error: any) {

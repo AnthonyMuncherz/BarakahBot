@@ -181,7 +181,7 @@ const ChatInterface = () => {
                 </div>
                 {/* Conditionally render markdown for assistant or plain text for user */}
                 {message.role === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert"> {/* Apply prose styling */}
+                  <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
                     <ReactMarkdown>{message.content}</ReactMarkdown>
                   </div>
                 ) : (
