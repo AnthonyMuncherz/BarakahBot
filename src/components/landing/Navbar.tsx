@@ -4,16 +4,24 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar = () => {
   const pathname = usePathname();
+  const { user, logout, isLoading } = useAuth();
   
-  // Navigation items with their paths
-  const navItems = [
+  // Base navigation items (visible to all)
+  const baseNavItems = [
     { name: 'Home', path: '/' },
     { name: 'ZakatBot', path: '/zakatbot' },
     { name: 'Campaigns', path: '/campaigns' },
-    { name: 'Dashboard', path: '/dashboard' },
+  ];
+
+  // Combine nav items, adding Dashboard if logged in
+  const navItems = [
+    ...baseNavItems,
+    ...(user ? [{ name: 'Dashboard', path: '/dashboard' }] : []),
   ];
 
   return (
@@ -27,6 +35,11 @@ const Navbar = () => {
         
         <nav className="hidden md:flex items-center space-x-4">
           {navItems.map((item) => {
+            // Ensure dashboard link doesn't flash during initial load
+            if (item.path === '/dashboard' && isLoading) return null;
+            // Render dashboard link only if user exists (covers !isLoading case)
+            if (item.path === '/dashboard' && !user) return null; 
+
             const isActive = pathname === item.path;
             return (
               <Link
@@ -44,10 +57,30 @@ const Navbar = () => {
           })}
         </nav>
 
-        <div>
-          <Button variant="ghost" className="text-brand-dark-green font-medium" asChild>
-            <Link href="/login">Login</Link>
-          </Button>
+        <div className="flex items-center space-x-2">
+          {isLoading ? (
+            <>
+              {/* Skeletons for both buttons during loading */}
+              <Skeleton className="h-9 w-16 rounded-md" /> 
+              <Skeleton className="h-9 w-20 rounded-md" />
+            </>
+          ) : user ? (
+            <>
+              {user.name && <span className="text-sm text-muted-foreground hidden sm:inline mr-2">Welcome, {user.name}!</span>} {/* Added margin */}
+              <Button variant="ghost" onClick={logout} className="text-brand-dark-green font-medium">
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" className="text-brand-dark-green font-medium" asChild>
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button variant="default" asChild>
+                <Link href="/register">Register</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>
