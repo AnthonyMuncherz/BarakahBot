@@ -1,11 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
 import { 
   CalendarIcon, 
@@ -15,11 +24,51 @@ import {
   KeyIcon,
   UserIcon,
   EditIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  Loader2Icon
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+  });
+
+  // Initialize form data when user data is available
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name,
+        email: user.email,
+      });
+    }
+  }, [user]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    
+    try {
+      // TODO: Implement the update profile API call here
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const mockStats = {
     totalDonations: "RM 12,500",
@@ -84,10 +133,68 @@ export default function DashboardPage() {
             <p className="text-gray-600">{user.email}</p>
           </div>
         </div>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => setIsEditModalOpen(true)}
+        >
           <EditIcon className="w-4 h-4" />
           Edit Profile
         </Button>
+
+        {/* Edit Profile Modal */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Profile</DialogTitle>
+              <DialogDescription>
+                Make changes to your profile information here.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Name
+                  </label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating && (
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Statistics Cards */}
