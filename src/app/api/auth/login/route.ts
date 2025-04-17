@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
-import { account } from '@/lib/appwrite-server'; // Use server-side SDK
+import { Client, Account } from 'node-appwrite';
 import { AppwriteException } from 'node-appwrite';
+
+// Initialize Appwrite client for server-side operations
+const client = new Client()
+  .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+  .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!)
+  .setKey(process.env.APPWRITE_API_KEY!);
+
+const account = new Account(client);
 
 export async function POST(request: Request) {
   try {
@@ -13,13 +21,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create session using the server-side SDK
-    const session = await account.createEmailPasswordSession(email, password);
+    // Create session using the server-side SDK - Use correct method name
+    const session = await account.createEmailPasswordSession(email, password); // <--- CHANGE HERE
 
-    // Create the response object first
-    const response = NextResponse.json({ success: true, sessionId: session.$id });
+    // Create the response object
+    const response = NextResponse.json({
+      success: true,
+      sessionId: session.$id,
+      userId: session.userId
+    });
 
-    // Set the cookie on the response
+    // Set the session cookie
     response.cookies.set('appwrite-session', session.secret, {
       path: '/',
       httpOnly: true,
@@ -28,27 +40,29 @@ export async function POST(request: Request) {
       expires: new Date(session.expire),
     });
 
-    // Optionally, you could fetch the user details here if needed on the client
-    // const user = await account.get(); 
-
-    return response; // Return the response with the cookie
+    return response;
 
   } catch (error) {
-    console.error('[LOGIN_POST] Appwrite error:', error);
+    console.error('[LOGIN_POST] Error:', error);
     let errorMessage = 'An unexpected error occurred';
     let statusCode = 500;
 
     if (error instanceof AppwriteException) {
       errorMessage = error.message;
-      // Appwrite uses 401 for invalid credentials
-      if (error.code === 401) {
-         statusCode = 401;
-         errorMessage = 'Invalid email or password';
+      if (error.code === 401) { // AppwriteException.USER_INVALID_CREDENTIALS
+        statusCode = 401;
+        errorMessage = 'Invalid email or password';
+      } else if (error.code === 404) { // AppwriteException.USER_NOT_FOUND (although 401 is more common for login)
+        statusCode = 404;
+        errorMessage = 'User not found';
+      } else if (error.code === 429) { // AppwriteException.RATE_LIMIT_EXCEEDED
+        statusCode = 429;
+        errorMessage = 'Too many login attempts. Please try again later.';
       } else {
         statusCode = error.code || 500;
       }
     }
-    
+
     return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
-} 
+}

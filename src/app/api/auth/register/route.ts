@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
-import { users, ID } from '@/lib/appwrite-server'; // Use server-side SDK
+import { users, ID, databases } from '@/lib/appwrite-server';
 import { AppwriteException } from 'node-appwrite';
+import { Query } from 'node-appwrite';
+import FormData from 'form-data';
+import Mailgun from 'mailgun.js';
+
+// Initialize Mailgun
+const mailgun = new Mailgun(FormData);
+const mg = mailgun.client({
+  username: 'api',
+  key: process.env.MAILGUN_API_KEY || '',
+  url: "https://api.eu.mailgun.net"
+});
 
 export async function POST(request: Request) {
   try {
@@ -13,26 +24,72 @@ export async function POST(request: Request) {
       );
     }
 
+    // Create the user
     const newUser = await users.create(
       ID.unique(),
       email,
       undefined, // phone
       password,
-      name || undefined // name
+      name || undefined
     );
 
-    // You might want to automatically log the user in here or send a verification email
-    // For now, just return the created user info (excluding sensitive data)
+    // Generate verification token
+    const verificationToken = ID.unique();
+    
+    try {
+      // Store verification token in database
+      await databases.createDocument(
+        process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+        'email_verifications',
+        ID.unique(),
+        {
+          user_id: newUser.$id,
+          token: verificationToken,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        }
+      );
 
-    return NextResponse.json({ userId: newUser.$id, email: newUser.email, name: newUser.name });
+      // Send verification email using Mailgun
+      const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}&userId=${newUser.$id}`;
+      
+      await mg.messages.create(process.env.MAILGUN_DOMAIN!, {
+        from: `BarakahBot <noreply@${process.env.MAILGUN_DOMAIN}>`,
+        to: [email],
+        subject: "Verify your email address",
+        text: `Please verify your email address by clicking this link: ${verificationUrl}`,
+        html: `
+          <h2>Welcome to BarakahBot!</h2>
+          <p>Please verify your email address by clicking the button below:</p>
+          <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">Verify Email</a>
+          <p>Or copy and paste this link in your browser:</p>
+          <p>${verificationUrl}</p>
+          <p>This link will expire in 24 hours.</p>
+        `
+      });
+
+      return NextResponse.json({ 
+        userId: newUser.$id, 
+        email: newUser.email, 
+        name: newUser.name,
+        message: 'Registration successful. Please check your email for verification.'
+      });
+    } catch (error) {
+      console.error('[EMAIL_VERIFICATION_SETUP_ERROR]:', error);
+      // If email sending fails, still return success but with a different message
+      return NextResponse.json({ 
+        userId: newUser.$id, 
+        email: newUser.email, 
+        name: newUser.name,
+        message: 'Registration successful. Please contact support for email verification.'
+      });
+    }
   } catch (error) {
-    console.error('[REGISTER_POST] Appwrite error:', error);
+    console.error('[REGISTER_POST] Error:', error);
     let errorMessage = 'An unexpected error occurred';
     let statusCode = 500;
 
     if (error instanceof AppwriteException) {
       errorMessage = error.message;
-      // Appwrite often uses 409 for conflicts like user already exists
       if (error.code === 409) {
         statusCode = 409;
         errorMessage = 'User with this email already exists';
