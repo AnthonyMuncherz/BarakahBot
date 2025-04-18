@@ -9,6 +9,37 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+const mapPaymentMethodToAppwrite = (stripeMethod: string): string => {
+  switch (stripeMethod.toLowerCase()) {
+    case 'card':
+      return 'credit_card';
+    case 'fpx':
+      return 'bank_transfer';
+    case 'grabpay':
+    case 'alipay':
+      return 'e_wallet';
+    default:
+      return 'credit_card'; // fallback to credit_card
+  }
+};
+
+const getPaymentMethod = async (session: Stripe.Checkout.Session): Promise<string> => {
+  try {
+    if (session.payment_intent) {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent.id
+      );
+      const stripeMethod = paymentIntent.payment_method_types[0] || 'card';
+      return mapPaymentMethodToAppwrite(stripeMethod);
+    }
+    const stripeMethod = session.payment_method_types?.[0] || 'card';
+    return mapPaymentMethodToAppwrite(stripeMethod);
+  } catch (error) {
+    console.error('Error getting payment method:', error);
+    return 'credit_card'; // fallback to credit_card
+  }
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.text();
@@ -30,8 +61,9 @@ export async function POST(request: Request) {
       const { userId } = session.metadata!;
       // Amount is in the smallest currency unit, convert to MYR (or appropriate currency)
       const amount = session.amount_total! / 100;
+      const paymentMethod = await getPaymentMethod(session);
 
-      console.log(`Checkout session completed for user ${userId}, amount ${amount}`);
+      console.log(`Checkout session completed for user ${userId}, amount ${amount}, payment method ${paymentMethod}`);
 
       try {
         // Log the document creation attempt
@@ -41,7 +73,7 @@ export async function POST(request: Request) {
           currency: 'MYR',
           timestamp: new Date().toISOString(),
           payment_status: 'completed',
-          payment_method: 'credit_card',
+          payment_method: paymentMethod,
         });
 
         const doc = await databases.createDocument(
@@ -54,7 +86,7 @@ export async function POST(request: Request) {
             currency: 'MYR',
             timestamp: new Date().toISOString(),
             payment_status: 'completed',
-            payment_method: 'credit_card',
+            payment_method: paymentMethod,
           }
         );
         console.log('Donation record created in Appwrite:', doc);
