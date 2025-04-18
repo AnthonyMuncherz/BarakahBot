@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, RefreshCw, Calculator as CalculatorIcon, X } from 'lucide-react';
 import Calculator from './Calculator';
-import ReactMarkdown from 'react-markdown';
+import TypewriterMessage from './TypewriterMessage'; // Import the new component
 import {
   Dialog,
   DialogContent,
@@ -14,68 +14,72 @@ import {
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant' | 'system'; // Updated role
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
 }
 
 const ChatInterface = () => {
   const initialMessage: Message = {
-      id: '1',
-      role: 'assistant',
-      content: 'Assalamualaikum! I\'m ZakatBot, your assistant for Zakat calculation and guidance. How can I help you today?',
-      timestamp: new Date(),
-    };
+    id: '1',
+    role: 'assistant',
+    content: 'Assalamualaikum! I\'m ZakatBot, your assistant for Zakat calculation and guidance. How can I help you today?',
+    timestamp: new Date(),
+  };
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change or while typing
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
+    const scrollTimeout = setTimeout(() => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    }, 100); // Small delay to allow layout adjustments
+
+    return () => clearTimeout(scrollTimeout);
+  }, [messages, isLoading]); // Trigger scroll on new messages and loading state changes
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const trimmedInput = inputMessage.trim();
     if (!trimmedInput) return;
-    
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: trimmedInput,
       timestamp: new Date(),
     };
-    
+
     // Add user message immediately and clear input
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInputMessage('');
     setIsLoading(true);
-    
+
     // Check for calculator keyword before sending to API
-    if (trimmedInput.toLowerCase().includes('calculate') || 
-        trimmedInput.toLowerCase().includes('calculator') ||
-        trimmedInput.toLowerCase().includes('computation')) {
-        
+    if (trimmedInput.toLowerCase().includes('calculate') ||
+      trimmedInput.toLowerCase().includes('calculator') ||
+      trimmedInput.toLowerCase().includes('computation')) {
+
       const botMessage: Message = {
         id: Date.now().toString() + '-calc-trigger',
         role: 'assistant',
         content: "I can help you calculate your Zakat. I've opened the calculator for you. Please enter your assets, and I'll calculate the amount of Zakat you need to pay.",
         timestamp: new Date(),
       };
-      
+
       setMessages(prevMessages => [...prevMessages, botMessage]);
       setIsLoading(false);
       setShowCalculator(true); // Open the dialog
       return; // Don't send calculator requests to the API
     }
-    
+
     // Prepare messages for API (only user and assistant roles)
     const apiMessages = newMessages.filter(msg => msg.role === 'user' || msg.role === 'assistant').map(msg => ({ role: msg.role, content: msg.content }));
 
@@ -93,14 +97,14 @@ const ChatInterface = () => {
       }
 
       const data = await response.json();
-      
+
       const botReply: Message = {
         id: Date.now().toString() + '-bot',
         role: 'assistant',
         content: data.reply || "Sorry, I couldn't get a response.",
         timestamp: new Date(),
       };
-      
+
       setMessages(prevMessages => [...prevMessages, botReply]);
 
     } catch (error) {
@@ -124,14 +128,14 @@ const ChatInterface = () => {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    
+
     const calculationMessage: Message = {
       id: Date.now().toString() + '-calc-result',
       role: 'assistant',
       content: `Based on the assets you provided, your Zakat amount is ${formattedAmount}. Would you like to proceed with payment or have any other questions?`,
       timestamp: new Date(),
     };
-    
+
     setMessages(prevMessages => [...prevMessages, calculationMessage]);
     setShowCalculator(false); // Close the dialog after calculation
   };
@@ -146,7 +150,7 @@ const ChatInterface = () => {
             <h3 className="font-medium">ZakatBot</h3>
           </div>
           {/* Calculator Trigger Button */}
-          <button 
+          <button
             onClick={() => setShowCalculator(true)} // Open the dialog on click
             className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground"
             title={"Open calculator"}
@@ -154,43 +158,41 @@ const ChatInterface = () => {
             <CalculatorIcon size={18} />
           </button>
         </div>
-        
+
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
           {messages.map((message) => (
-            <div 
-              key={message.id} 
+            <div
+              key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div 
+              <div
                 className={`
-                  max-w-[85%] px-5 py-4 rounded-2xl 
-                  ${message.role === 'user' 
-                    ? 'bg-secondary text-secondary-foreground rounded-tr-none' 
-                    : 'bg-muted text-primary rounded-tl-none'
+                  max-w-[85%] px-5 py-4 rounded-2xl
+                  ${message.role === 'user'
+                    ? 'bg-secondary text-secondary-foreground rounded-tr-none'
+                    : 'bg-muted text-primary rounded-tl-none' // Changed assistant background to muted
                   }
                 `}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {message.role === 'assistant' 
-                    ? <Bot size={16} className="text-primary" /> 
+                  {message.role === 'assistant'
+                    ? <Bot size={16} className="text-primary" />
                     : <User size={16} className="text-secondary-foreground" />
                   }
                   <span className="text-xs opacity-70">
-                    {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                {/* Conditionally render markdown for assistant or plain text for user */}
+                {/* Use TypewriterMessage for assistant, plain text for user */}
                 {message.role === 'assistant' ? (
-                  <div className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                  </div>
+                  <TypewriterMessage content={message.content} speed={20} /> // Adjust speed as needed (lower is faster)
                 ) : (
                   <p className="text-base whitespace-pre-wrap">{message.content}</p>
                 )}
               </div>
             </div>
           ))}
-          
+
           {/* Loading indicator */}
           {isLoading && (
             <div className="flex justify-start">
@@ -204,7 +206,7 @@ const ChatInterface = () => {
             </div>
           )}
         </div>
-        
+
         {/* Message input */}
         <div className="border-t border-border p-4 bg-card">
           <form onSubmit={handleSendMessage} className="flex gap-2">
@@ -216,8 +218,8 @@ const ChatInterface = () => {
               onChange={(e) => setInputMessage(e.target.value)}
               disabled={isLoading} // Disable input while loading
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="p-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               disabled={!inputMessage.trim() || isLoading}
             >
@@ -226,7 +228,7 @@ const ChatInterface = () => {
           </form>
         </div>
       </div>
-      
+
       {/* Calculator Dialog */}
       <Dialog open={showCalculator} onOpenChange={setShowCalculator}>
         <DialogContent className="sm:max-w-[600px]">
@@ -237,7 +239,7 @@ const ChatInterface = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-             {/* Embed the Calculator component here */}
+            {/* Embed the Calculator component here */}
             <Calculator onCalculate={handleCalculation} />
           </div>
         </DialogContent>
@@ -246,4 +248,4 @@ const ChatInterface = () => {
   );
 };
 
-export default ChatInterface; 
+export default ChatInterface;
