@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     // Create a Checkout Session with Malaysian payment methods
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_configuration: process.env.STRIPE_PAYMENT_METHOD_CONFIGURATION,
       line_items: [
         {
           price_data: {
@@ -50,6 +50,8 @@ export async function POST(request: Request) {
         userId,
         campaign,
       },
+      locale: 'en',
+      customer_creation: 'always',
     });
 
     if (!session.id) {
