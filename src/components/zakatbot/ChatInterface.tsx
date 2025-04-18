@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Bot, User, RefreshCw, Calculator as CalculatorIcon, CreditCard } from 'lucide-react'; // Added CreditCard
+import { Send, Bot, User, RefreshCw, Calculator as CalculatorIcon, CreditCard } from 'lucide-react';
 import Calculator from './Calculator';
 import TypewriterMessage from './TypewriterMessage';
 import {
@@ -11,8 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button'; // Import Button
-import { loadStripe, Stripe } from '@stripe/stripe-js'; // Import Stripe types
+import { Button } from '@/components/ui/button';
+import { loadStripe, Stripe } from '@stripe/stripe-js';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Load Stripe outside the component to avoid reloading on every render
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
@@ -22,11 +23,12 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
-  isCalculationResult?: boolean; // Flag to identify the specific message
-  calculatedAmount?: number; // Store the raw amount for payment
+  isCalculationResult?: boolean;
+  calculatedAmount?: number;
 }
 
 const ChatInterface = () => {
+  const { user } = useAuth(); // Get user from auth context
   const initialMessage: Message = {
     id: '1',
     role: 'assistant',
@@ -36,7 +38,7 @@ const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isPaymentLoading, setIsPaymentLoading] = useState(false); // State for payment button loading
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -151,6 +153,21 @@ const ChatInterface = () => {
 
   // Function to handle Stripe redirect
   const handleProceedToPayment = async (amount: number) => {
+    if (!user) { // Check if user is logged in
+      // Redirect to login or show a message asking user to log in
+      // For now, we'll just log a message. You might want a modal or redirect.
+      console.warn("User not logged in. Cannot proceed with payment.");
+      // Optionally add a message to the chat or show a toast
+      const loginPromptMsg: Message = {
+        id: Date.now().toString() + '-login-prompt',
+        role: 'assistant',
+        content: "Please log in or register to proceed with payment.",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, loginPromptMsg]);
+      return;
+    }
+
     if (amount <= 0) {
       console.error("Cannot proceed with zero or negative amount.");
       // Optionally show an error message to the user
@@ -170,7 +187,11 @@ const ChatInterface = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ amount: amount }), // Send the raw amount
+        body: JSON.stringify({
+          amount: amount,
+          userId: user.$id, // Pass the user ID
+          campaign: 'Zakat Payment via ZakatBot' // Add a default campaign name
+        }),
       });
 
       const sessionData = await response.json();
@@ -265,7 +286,7 @@ const ChatInterface = () => {
                 {message.isCalculationResult && message.calculatedAmount && message.calculatedAmount > 0 && (
                   <Button
                     onClick={() => handleProceedToPayment(message.calculatedAmount!)}
-                    disabled={isPaymentLoading}
+                    disabled={isPaymentLoading || !user} // Disable if not logged in
                     className="mt-4 w-full"
                     size="sm"
                   >
@@ -274,7 +295,7 @@ const ChatInterface = () => {
                     ) : (
                       <CreditCard className="mr-2 h-4 w-4" />
                     )}
-                    {isPaymentLoading ? 'Processing...' : `Proceed with Payment (RM ${message.calculatedAmount.toFixed(2)})`}
+                    {isPaymentLoading ? 'Processing...' : (!user ? 'Log in to Pay' : `Proceed with Payment (RM ${message.calculatedAmount.toFixed(2)})`)}
                   </Button>
                 )}
               </div>
