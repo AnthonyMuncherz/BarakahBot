@@ -96,33 +96,37 @@ const Hero = () => {
             </AnimatedContainer>
 
             <motion.div
-              className="relative"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: 0.3,
-                duration: 0.8,
-                type: "spring",
-                stiffness: 100
-              }}
-            >
-              <div className="aspect-square rounded-2xl bg-white/50 backdrop-blur-sm p-6 relative overflow-hidden">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-brand-dark-green/10 to-transparent"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8, duration: 0.5 }}
-                />
-                <motion.div
-                  className="w-full h-full rounded-xl bg-white/30 backdrop-blur-sm"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1, duration: 0.5 }}
-                >
-                  {/* Placeholder for hero image or illustration */}
-                </motion.div>
-              </div>
-            </motion.div>
+  className="relative"
+  initial={{ opacity: 0, scale: 0.8 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{
+    delay: 0.3,
+    duration: 0.8,
+    type: "spring",
+    stiffness: 100
+  }}
+>
+<div className="w-full h-auto rounded-2xl p-0 bg-transparent overflow-hidden shadow-none">
+    <motion.div
+      className="absolute inset-0 bg-gradient-to-br from-brand-dark-green/10 to-transparent"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.8, duration: 0.5 }}
+    />
+    <motion.div
+      className="w-full h-full"
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 1, duration: 0.5 }}
+    >
+      <img
+        src="/images/hero.png"
+        alt="Donate with BarakahBot"
+        className="w-full object-contain"
+      />
+    </motion.div>
+  </div>
+</motion.div>
           </div>
         </div>
       </section>
