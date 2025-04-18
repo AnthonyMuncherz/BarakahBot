@@ -1,3 +1,14 @@
+/**
+ * Stripe Webhook Handler Route
+ * 
+ * This module processes Stripe webhook events, specifically handling completed checkout sessions
+ * and recording donation transactions in the Appwrite database.
+ * 
+ * Environment Variables Required:
+ * - STRIPE_SECRET_KEY: Stripe API secret key
+ * - STRIPE_WEBHOOK_SECRET: Stripe webhook signing secret
+ */
+
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
@@ -9,6 +20,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+/**
+ * Maps Stripe payment methods to internal Appwrite payment method types
+ * 
+ * @param {string} stripeMethod - The payment method from Stripe
+ * @returns {string} Mapped internal payment method type
+ */
 const mapPaymentMethodToAppwrite = (stripeMethod: string): string => {
   switch (stripeMethod.toLowerCase()) {
     case 'card':
@@ -23,6 +40,12 @@ const mapPaymentMethodToAppwrite = (stripeMethod: string): string => {
   }
 };
 
+/**
+ * Retrieves the payment method from a Stripe checkout session
+ * 
+ * @param {Stripe.Checkout.Session} session - The Stripe checkout session
+ * @returns {Promise<string>} Resolved payment method type
+ */
 const getPaymentMethod = async (session: Stripe.Checkout.Session): Promise<string> => {
   try {
     if (session.payment_intent) {
@@ -40,6 +63,39 @@ const getPaymentMethod = async (session: Stripe.Checkout.Session): Promise<strin
   }
 };
 
+/**
+ * POST request handler for Stripe webhook events
+ * 
+ * @param {Request} request - The incoming HTTP request object
+ * @returns {Promise<NextResponse>} JSON response acknowledging event receipt
+ * 
+ * Handled Events:
+ * - checkout.session.completed: Records successful donation in database
+ * 
+ * Success Response:
+ * {
+ *   received: true
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string,
+ *   status: number
+ * }
+ * 
+ * Database Operations:
+ * - Creates document in 'donation_history' collection with:
+ *   - user_id: string
+ *   - amount: number (in MYR)
+ *   - currency: 'MYR'
+ *   - timestamp: ISO date string
+ *   - payment_status: 'completed'
+ *   - payment_method: string
+ * 
+ * Security:
+ * - Verifies Stripe webhook signature
+ * - Requires valid 'stripe-signature' header
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.text();

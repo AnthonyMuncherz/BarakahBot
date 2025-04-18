@@ -1,7 +1,50 @@
+/**
+ * Email Verification Route Handler
+ * 
+ * This module handles email verification for newly registered users.
+ * It validates the verification token, updates the user's verification status,
+ * and cleans up the verification record from the database.
+ * 
+ * Environment Variables Required:
+ * - NEXT_PUBLIC_APPWRITE_DATABASE_ID: Appwrite database ID for verification records
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { databases, users } from '@/lib/appwrite-server';
 import { Query } from 'node-appwrite';
 
+/**
+ * POST request handler for email verification
+ * 
+ * @param {NextRequest} request - The incoming HTTP request object containing verification data
+ * @returns {Promise<NextResponse>} JSON response with verification status or error message
+ * 
+ * Expected Request Body:
+ * {
+ *   userId: string,  // User's ID in Appwrite
+ *   token: string    // Verification token sent via email
+ * }
+ * 
+ * Success Response:
+ * {
+ *   message: string  // Success confirmation message
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string,   // Error message
+ *   status: number   // HTTP status code
+ * }
+ * 
+ * Error Codes:
+ * - 400: Missing fields or invalid/expired token
+ * - 500: Server error during verification
+ * 
+ * Database Operations:
+ * - Queries 'email_verifications' collection for valid token
+ * - Updates user's email verification status
+ * - Deletes used verification token
+ */
 export async function POST(request: NextRequest) {
   try {
     const { userId, token } = await request.json();

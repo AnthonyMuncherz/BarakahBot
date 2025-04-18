@@ -1,3 +1,17 @@
+/**
+ * User Registration Route Handler
+ * 
+ * This module handles new user registration using Appwrite authentication service
+ * and sends verification emails using Mailgun. It creates a new user account,
+ * generates a verification token, and sends a verification email.
+ * 
+ * Environment Variables Required:
+ * - MAILGUN_API_KEY: API key for Mailgun service
+ * - MAILGUN_DOMAIN: Mailgun domain for sending emails
+ * - NEXT_PUBLIC_APP_URL: Application URL for verification links
+ * - NEXT_PUBLIC_APPWRITE_DATABASE_ID: Appwrite database ID
+ */
+
 import { NextResponse } from 'next/server';
 import { users, ID, databases } from '@/lib/appwrite-server';
 import { AppwriteException } from 'node-appwrite';
@@ -13,6 +27,46 @@ const mg = mailgun.client({
   url: "https://api.eu.mailgun.net"
 });
 
+/**
+ * POST request handler for user registration
+ * 
+ * @param {Request} request - The incoming HTTP request object containing registration data
+ * @returns {Promise<NextResponse>} JSON response with user details or error message
+ * 
+ * Expected Request Body:
+ * {
+ *   email: string,    // User's email address
+ *   password: string, // User's password
+ *   name?: string     // Optional user's name
+ * }
+ * 
+ * Success Response:
+ * {
+ *   userId: string,
+ *   email: string,
+ *   name?: string,
+ *   message: string   // Success message with next steps
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string,    // Error message
+ *   status: number    // HTTP status code
+ * }
+ * 
+ * Error Codes:
+ * - 400: Missing required fields
+ * - 409: Email already exists
+ * - 500: Unexpected server error
+ * 
+ * Database Collections Used:
+ * - email_verifications: Stores verification tokens
+ *   {
+ *     user_id: string,
+ *     token: string,
+ *     expires_at: string (ISO date)
+ *   }
+ */
 export async function POST(request: Request) {
   try {
     const { email, password, name } = await request.json();

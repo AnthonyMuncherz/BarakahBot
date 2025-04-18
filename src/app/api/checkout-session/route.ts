@@ -1,3 +1,15 @@
+/**
+ * Stripe Checkout Session Route Handler
+ * 
+ * This module creates a Stripe checkout session for processing payments.
+ * It's configured specifically for Malaysian payment methods and currency (MYR).
+ * 
+ * Environment Variables Required:
+ * - STRIPE_SECRET_KEY: Stripe API secret key
+ * - STRIPE_PAYMENT_METHOD_CONFIGURATION: Stripe payment method configuration ID
+ * - NEXT_PUBLIC_APP_URL: Application URL for success/cancel redirects
+ */
+
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { databases, ID } from '@/lib/appwrite-server';
@@ -7,6 +19,40 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16'
 });
 
+/**
+ * POST request handler for creating a Stripe checkout session
+ * 
+ * @param {Request} request - The incoming HTTP request object
+ * @returns {Promise<NextResponse>} JSON response with session ID or error
+ * 
+ * Expected Request Body:
+ * {
+ *   amount: number,     // Payment amount in MYR (e.g., 10.00 for RM10)
+ *   userId: string,     // User ID for tracking payment
+ *   campaign: string    // Campaign/payment description
+ * }
+ * 
+ * Success Response:
+ * {
+ *   sessionId: string   // Stripe checkout session ID
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string,      // Error message
+ *   status: number      // HTTP status code
+ * }
+ * 
+ * Payment Configuration:
+ * - Currency: MYR (Malaysian Ringgit)
+ * - Minimum amount: RM0.50 (50 sen)
+ * - Payment methods: Based on Malaysian configuration
+ * - Customer creation: Always creates new customer
+ * 
+ * Redirects:
+ * - Success: /payment-success with session ID
+ * - Cancel: /zakatbot
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
