@@ -1,19 +1,66 @@
 import * as React from "react"
+import { motion, HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { cardVariants, getResponsiveCardVariants } from "@/lib/animation-variants"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps extends Omit<HTMLMotionProps<"div">, "children" | "variants"> {
+  children: React.ReactNode;
+  animated?: boolean;
+  direction?: 'left' | 'right' | 'up' | 'down';
+  delay?: number;
+  useCustomVariants?: boolean;
+  className?: string;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, animated = false, direction = 'up', delay = 0, useCustomVariants = false, children, style, ...props }, ref) => {
+    const variants = useCustomVariants ? getResponsiveCardVariants(direction) : cardVariants;
+    
+    if (!animated) {
+      return (
+        <div
+          ref={ref}
+          className={cn(
+            "rounded-lg border bg-card text-card-foreground shadow-sm",
+            className
+          )}
+          style={style as React.CSSProperties}
+          {...(props as React.HTMLAttributes<HTMLDivElement>)}
+        >
+          {children}
+        </div>
+      );
+    }
+
+    return (
+      <motion.div
+        ref={ref}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        whileHover="hover"
+        whileTap="tap"
+        variants={variants}
+        transition={{
+          delay,
+          type: "spring",
+          stiffness: 100,
+          damping: 15,
+          duration: 0.5,
+        }}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm",
+          className
+        )}
+        style={style}
+        {...props}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+);
+
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

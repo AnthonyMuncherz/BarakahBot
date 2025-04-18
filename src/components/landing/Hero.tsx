@@ -1,6 +1,10 @@
+'use client';
+
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { AnimatedContainer } from '@/components/ui/animated-container';
+import { ArrowRight } from 'lucide-react';
 
 // Banner component for the "BarakahBot is Based on Malaysia" text
 const Banner = () => {
@@ -17,40 +21,87 @@ const Hero = () => {
   return (
     <>
       <Banner />
-      <section className="container max-w-screen-xl mx-auto py-16 md:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Text Content */}
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight tracking-tight text-brand-dark-green">
-              Introducing BarakahBot
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              BarakahBot is the first security-first charity and donation platform in Malaysia. With AI-powered guidance and verified campaigns, we ensure every donation is safe, transparent, and Shariah-compliant.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                href="/share"
-                className="inline-block px-6 py-3 bg-[#E8F5E9] text-[#1A4D2E] font-medium rounded-md hover:bg-[#D1E7DD] transition-colors text-center"
+      <section className="py-16 md:py-24 bg-brand-cream">
+        <div className="container max-w-screen-xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <AnimatedContainer>
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                Start Sharing Securely
-              </Link>
-              <Link
-                href="#how-we-protect"
-                className="inline-block px-6 py-3 text-[#1A4D2E] font-medium hover:underline transition-colors"
-              >
-                See How We Protect Your Donations
-              </Link>
-            </div>
-          </div>
-          
-          {/* Image */}
-          <div>
-            {/* Placeholder div instead of image */}
-            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-              <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-                <p className="text-primary font-medium">Donation Image Placeholder</p>
+                <motion.h1
+                  className="text-4xl md:text-6xl font-bold text-brand-dark-green mb-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  Empowering Generosity Through Technology
+                </motion.h1>
+
+                <motion.p
+                  className="text-lg text-muted-foreground mb-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                >
+                  Join us in making a difference. BarakahBot makes it easy to calculate and distribute your Zakat, ensuring your charitable giving reaches those who need it most.
+                </motion.p>
+
+                <motion.div
+                  className="flex flex-col sm:flex-row gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
+                >
+                  {/* Updated Calculate Zakat Button (Primary Style) */}
+                  <Link
+                    href="/zakatbot"
+                    className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 hover:scale-105 shadow-lg shadow-primary/20 transition-all duration-200"
+                  >
+                    Calculate Zakat
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  {/* Updated Create Account Button (Outline Style) */}
+                  <Link
+                    href="/register"
+                    className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary bg-transparent rounded-xl border border-primary hover:bg-primary/5 hover:scale-105 shadow-lg shadow-primary/10 transition-all duration-200"
+                  >
+                    Create Account
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </motion.div>
+              </motion.div>
+            </AnimatedContainer>
+
+            <motion.div
+              className="relative"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                delay: 0.3,
+                duration: 0.8,
+                type: "spring",
+                stiffness: 100
+              }}
+            >
+              <div className="aspect-square rounded-2xl bg-white/50 backdrop-blur-sm p-6 relative overflow-hidden">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-brand-dark-green/10 to-transparent"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                />
+                <motion.div
+                  className="w-full h-full rounded-xl bg-white/30 backdrop-blur-sm"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                >
+                  {/* Placeholder for hero image or illustration */}
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -58,4 +109,4 @@ const Hero = () => {
   );
 };
 
-export default Hero; 
+export default Hero;

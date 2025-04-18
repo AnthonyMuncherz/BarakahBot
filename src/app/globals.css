@@ -45,17 +45,25 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0); /* Default background, might override later */
-  --foreground: oklch(0.145 0 0); /* Default foreground */
+  --background: oklch(1 0 0);
+  /* Default background, might override later */
+  --foreground: oklch(0.145 0 0);
+  /* Default foreground */
 
   /* BarakahBot Colors */
-  --brand-cream: 40 20% 96%; /* #F5F2EA - slightly warmer cream */
-  --brand-dark-green: 147 55% 16%; /* #0F3D23 - darker green */
-  --brand-medium-green: 148 40% 25%; /* #1E573A - medium green */
-  --brand-light-green: 145 35% 83%; /* #C9E4D9 - adjusted light green */
+  --brand-cream: 40 20% 96%;
+  /* #F5F2EA - slightly warmer cream */
+  --brand-dark-green: 147 55% 16%;
+  /* #0F3D23 - darker green */
+  --brand-medium-green: 148 40% 25%;
+  /* #1E573A - medium green */
+  --brand-light-green: 145 35% 83%;
+  /* #C9E4D9 - adjusted light green */
 
-  --background: hsl(var(--brand-cream)); /* Set cream as default background */
-  --foreground: hsl(var(--brand-dark-green)); /* Set dark green as default text */
+  --background: hsl(var(--brand-cream));
+  /* Set cream as default background */
+  --foreground: hsl(var(--brand-dark-green));
+  /* Set dark green as default text */
 
   --card: hsl(var(--brand-cream));
   --card-foreground: hsl(var(--brand-dark-green));
@@ -66,13 +74,18 @@
   --secondary: hsl(var(--brand-medium-green));
   --secondary-foreground: hsl(var(--brand-cream));
   --muted: hsl(var(--brand-light-green));
-  --muted-foreground: hsl(var(--brand-dark-green) / 0.8); /* Slightly lighter dark green */
+  --muted-foreground: hsl(var(--brand-dark-green) / 0.8);
+  /* Slightly lighter dark green */
   --accent: hsl(var(--brand-light-green));
   --accent-foreground: hsl(var(--brand-dark-green));
-  --destructive: oklch(0.577 0.245 27.325); /* Keep default destructive */
-  --border: hsl(var(--brand-dark-green) / 0.2); /* Subtle dark green border */
-  --input: hsl(var(--brand-dark-green) / 0.1); /* Subtle dark green input bg */
-  --ring: hsl(var(--brand-medium-green)); /* Medium green ring */
+  --destructive: oklch(0.577 0.245 27.325);
+  /* Keep default destructive */
+  --border: hsl(var(--brand-dark-green) / 0.2);
+  /* Subtle dark green border */
+  --input: hsl(var(--brand-dark-green) / 0.1);
+  /* Subtle dark green input bg */
+  --ring: hsl(var(--brand-medium-green));
+  /* Medium green ring */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -126,7 +139,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Add blinking cursor animation */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+  display: inline-block;
+  /* Prevents layout shifts */
+  vertical-align: bottom;
+  /* Aligns cursor better with text */
+  margin-left: 2px;
+  /* Small space after text */
 }
