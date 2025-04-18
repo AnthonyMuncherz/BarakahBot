@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +27,19 @@ import {
   CheckCircleIcon,
   Loader2Icon
 } from 'lucide-react';
+import { databases, Query } from '@/lib/appwrite-client';
+import { Models } from 'appwrite';
+import { formatDate } from '@/lib/utils';
+
+interface Donation {
+  $id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  timestamp: string;
+  payment_status: string;
+  payment_method: string;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -36,15 +49,105 @@ export default function DashboardPage() {
     name: '',
     email: '',
   });
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [totalDonations, setTotalDonations] = useState(0);
 
   // Initialize form data when user data is available
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       setFormData({
         name: user.name,
         email: user.email,
       });
     }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchDonations = async () => {
+      try {
+        console.log('Current user:', {
+          id: user.$id,
+          name: user.name,
+          email: user.email
+        });
+        
+        // First, check if user exists
+        if (!user.$id) {
+          console.error('No user ID available');
+          setDonations([]);
+          setTotalDonations(0);
+          return;
+        }
+
+        console.log('Fetching donations for user ID:', user.$id);
+        
+        // Try to list all documents first
+        const response = await databases.listDocuments(
+          'barakah_db',
+          'donation_history'
+        );
+
+        console.log('Raw API Response:', response);
+
+        // Filter documents manually for the user
+        const userDonations = response.documents.filter(doc => doc.user_id === user.$id);
+        console.log('Filtered donations for user:', userDonations);
+
+        if (userDonations.length === 0) {
+          console.log('No donations found for user after filtering');
+          setDonations([]);
+          setTotalDonations(0);
+          return;
+        }
+
+        // Sort by timestamp descending
+        const sortedDonations = userDonations.sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+
+        const donationDocs = sortedDonations.map((doc) => {
+          console.log('Processing donation document:', {
+            id: doc.$id,
+            userId: doc.user_id,
+            amount: doc.amount,
+            status: doc.payment_status,
+            timestamp: doc.timestamp
+          });
+          
+          return {
+            $id: doc.$id,
+            user_id: doc.user_id,
+            amount: doc.amount,
+            currency: doc.currency,
+            timestamp: doc.timestamp,
+            payment_status: doc.payment_status,
+            payment_method: doc.payment_method,
+          };
+        });
+
+        console.log('Final processed donations:', donationDocs);
+        setDonations(donationDocs);
+        
+        const total = donationDocs.reduce((sum, doc) => sum + doc.amount, 0);
+        console.log('Total donations calculated:', total);
+        setTotalDonations(total);
+      } catch (error) {
+        console.error('Error fetching donations:', error);
+        if (error instanceof Error) {
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
+        setDonations([]);
+        setTotalDonations(0);
+      }
+    };
+
+    fetchDonations();
   }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,14 +201,6 @@ export default function DashboardPage() {
       progress: 90,
       daysLeft: 2
     }
-  ];
-
-  const mockDonations = [
-    { date: "Mar 15, 2024", campaign: "Monthly Zakat", amount: "RM 2,500", status: "Completed" },
-    { date: "Mar 10, 2024", campaign: "Education Fund", amount: "RM 1,000", status: "Completed" },
-    { date: "Mar 1, 2024", campaign: "Emergency Relief", amount: "RM 500", status: "Completed" },
-    { date: "Feb 15, 2024", campaign: "Monthly Zakat", amount: "RM 2,500", status: "Completed" },
-    { date: "Feb 1, 2024", campaign: "Food Bank", amount: "RM 750", status: "Completed" }
   ];
 
   if (!user) {
@@ -203,8 +298,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-sm text-gray-600">Total Donations</p>
-              <h3 className="text-2xl font-bold">{mockStats.totalDonations}</h3>
-              <p className="text-sm text-green-600">{mockStats.growth}</p>
+              <h3 className="text-2xl font-bold">RM {totalDonations.toFixed(2)}</h3>
             </div>
           </div>
         </Card>
@@ -236,25 +330,31 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <h2 className="text-xl font-semibold mb-4">Donation History</h2>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left border-b">
-                  <th className="pb-2">DATE</th>
-                  <th className="pb-2">CAMPAIGN</th>
-                  <th className="pb-2">AMOUNT</th>
-                  <th className="pb-2">STATUS</th>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
                 </tr>
               </thead>
-              <tbody>
-                {mockDonations.map((donation, index) => (
-                  <tr key={index} className="border-b">
-                    <td className="py-3">{donation.date}</td>
-                    <td className="py-3">{donation.campaign}</td>
-                    <td className="py-3">{donation.amount}</td>
-                    <td className="py-3">
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {donation.status}
+              <tbody className="bg-white divide-y divide-gray-200">
+                {donations.map((donation) => (
+                  <tr key={donation.$id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(donation.timestamp).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {donation.currency} {donation.amount.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge variant={donation.payment_status === 'completed' ? 'secondary' : 'outline'}>
+                        {donation.payment_status}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {donation.payment_method}
                     </td>
                   </tr>
                 ))}
