@@ -81,9 +81,7 @@ const Features = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="w-full h-full bg-primary/20 flex items-center justify-center">
-              <p className="text-primary font-medium">Features Image Placeholder</p>
-            </div>
+            <img src="public/donation.jpg" alt="Image Description" className="max-w-full h-auto"/>
           </motion.div>
         </AnimatedContainer>
 
