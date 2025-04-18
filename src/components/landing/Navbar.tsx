@@ -1,3 +1,33 @@
+/**
+ * Navbar Component
+ * 
+ * The main navigation bar for BarakahBot, featuring responsive design and authentication state.
+ * Displays different navigation items and buttons based on user authentication status.
+ * Uses the AuthContext for user state management.
+ * 
+ * Components:
+ * - Button: UI component for action buttons
+ * - Skeleton: Loading state placeholder
+ * - Link: Next.js link component for navigation
+ * 
+ * Features:
+ * - Responsive navigation with mobile support
+ * - Dynamic navigation items based on auth state
+ * - Active link highlighting
+ * - Loading state handling
+ * - Sticky positioning with backdrop blur
+ * 
+ * Context:
+ * - useAuth: Provides user authentication state and functions
+ * 
+ * Navigation Items:
+ * - Base: Home, ZakatBot, Campaigns
+ * - Authenticated: Adds Dashboard
+ * - Auth Buttons: Login/Register or Welcome/Logout
+ * 
+ * Props: None
+ */
+
 'use client';
 
 import React from 'react';

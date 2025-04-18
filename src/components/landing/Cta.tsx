@@ -1,3 +1,30 @@
+/**
+ * CTA (Call to Action) Component
+ * 
+ * A prominent section encouraging users to take action and donate.
+ * Features compelling copy and a video placeholder for engagement.
+ * Uses custom styling and components for visual appeal.
+ * 
+ * Components:
+ * - Button: UI component for action button
+ * - PlayCircle: Lucide icon for video play button
+ * - Image: Next.js optimized image component
+ * 
+ * Features:
+ * - Responsive two-column layout
+ * - Engaging headline and subtext
+ * - Video section with play button overlay
+ * - Custom color scheme using Tailwind CSS
+ * 
+ * Visual Elements:
+ * - Primary background color
+ * - Contrasting text colors
+ * - Shadow effects for depth
+ * - Hover states for interactive elements
+ * 
+ * Props: None
+ */
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';

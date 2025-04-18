@@ -1,3 +1,29 @@
+/**
+ * Footer Component
+ * 
+ * The website footer containing branding, copyright information, and social links.
+ * Features a responsive layout and dynamic year display.
+ * Uses Lucide icons for social media links.
+ * 
+ * Components:
+ * - Link: Next.js link component for navigation
+ * - Lucide Icons: Instagram, Twitter, Send, Youtube, Copyright
+ * 
+ * Features:
+ * - Responsive layout (switches between column and row)
+ * - Dynamic copyright year
+ * - Social media links with hover effects
+ * - Consistent branding with main site
+ * 
+ * Visual Elements:
+ * - Border top for separation
+ * - Muted text colors for secondary information
+ * - Hover effects on interactive elements
+ * - Proper spacing and alignment
+ * 
+ * Props: None
+ */
+
 import React from 'react';
 import Link from 'next/link';
 import { Instagram, Twitter, Send, Youtube, Copyright } from 'lucide-react';
