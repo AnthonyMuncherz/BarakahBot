@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CalculatorProps {
   onCalculate: (amount: number) => void;
 }
 
 const Calculator = ({ onCalculate }: CalculatorProps) => {
+  const router = useRouter();
   const [assets, setAssets] = useState({
     cash: 0,
     gold: 0,
@@ -15,6 +17,8 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
     propertyForSale: 0,
     businessInventory: 0,
   });
+  const [isCalculated, setIsCalculated] = useState(false);
+  const [calculatedAmount, setCalculatedAmount] = useState(0);
 
   const [goldPrice, setGoldPrice] = useState(85); // Nisab value in grams of gold
   const [silverPrice, setSilverPrice] = useState(595); // Nisab value in grams of silver
@@ -51,12 +55,43 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
       ...assets,
       [name]: parseFloat(value) || 0,
     });
+    setIsCalculated(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const zakatAmount = calculateZakat();
+    setCalculatedAmount(zakatAmount);
+    setIsCalculated(true);
     onCalculate(zakatAmount);
+  };
+
+  const handlePayment = async () => {
+    try {
+      const response = await fetch('/api/checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: calculatedAmount,
+          currency: 'myr',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error('Error:', data.error);
+        return;
+      }
+
+      if (data.sessionId) {
+        window.location.href = `https://checkout.stripe.com/c/pay/${data.sessionId}`;
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+    }
   };
 
   return (
@@ -128,12 +163,24 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
         </div>
       </div>
       
-      <button
-        type="submit"
-        className="w-full py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-      >
-        Calculate & Add to Chat
-      </button>
+      <div className="flex flex-col gap-2">
+        <button
+          type="submit"
+          className="w-full py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+        >
+          Calculate & Add to Chat
+        </button>
+
+        {isCalculated && calculatedAmount > 0 && (
+          <button
+            type="button"
+            onClick={handlePayment}
+            className="w-full py-2.5 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+          >
+            Proceed to Payment
+          </button>
+        )}
+      </div>
     </form>
   );
 };
