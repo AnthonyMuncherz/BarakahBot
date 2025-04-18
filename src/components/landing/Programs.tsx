@@ -1,3 +1,37 @@
+/**
+ * Programs Component
+ * 
+ * Displays the various donation programs available through BarakahBot.
+ * Features animated cards with icons and descriptions for each program type.
+ * Uses Framer Motion for smooth animations and transitions.
+ * 
+ * Components:
+ * - AnimatedContainer: Wrapper for animated content
+ * - Card/CardContent: UI components for program display
+ * - Lucide Icons: GraduationCap, Waves, HeartPulse
+ * 
+ * Features:
+ * - Responsive grid layout
+ * - Animated icons with spring effect
+ * - Card animations with directional variants
+ * - Navigation arrows for mobile scrolling
+ * 
+ * Data Structure:
+ * programs = [
+ *   {
+ *     icon: LucideIcon,
+ *     title: string,
+ *     description: string,
+ *     link: string
+ *   }
+ * ]
+ * 
+ * Animation Variants:
+ * - iconVariants: Controls icon animation with spring effect
+ * 
+ * Props: None
+ */
+
 'use client';
 
 import React from 'react';

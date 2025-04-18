@@ -1,3 +1,15 @@
+/**
+ * Authentication Login Route Handler
+ * 
+ * This module implements email/password authentication using Appwrite's authentication service.
+ * It creates a new session for valid credentials and sets up secure session cookies.
+ * 
+ * Environment Variables Required:
+ * - NEXT_PUBLIC_APPWRITE_ENDPOINT: Appwrite server endpoint
+ * - NEXT_PUBLIC_APPWRITE_PROJECT_ID: Appwrite project ID
+ * - APPWRITE_API_KEY: Server-side Appwrite API key
+ */
+
 import { NextResponse } from 'next/server';
 import { Client, Account } from 'node-appwrite';
 import { AppwriteException } from 'node-appwrite';
@@ -10,6 +22,38 @@ const client = new Client()
 
 const account = new Account(client);
 
+/**
+ * POST request handler for user login
+ * 
+ * @param {Request} request - The incoming HTTP request object containing login credentials
+ * @returns {Promise<NextResponse>} JSON response with session details or error message
+ * 
+ * Expected Request Body:
+ * {
+ *   email: string,    // User's email address
+ *   password: string  // User's password
+ * }
+ * 
+ * Success Response:
+ * {
+ *   success: boolean,
+ *   sessionId: string,
+ *   userId: string
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string,    // Error message
+ *   status: number    // HTTP status code
+ * }
+ * 
+ * Error Codes:
+ * - 400: Missing email or password
+ * - 401: Invalid credentials
+ * - 404: User not found
+ * - 429: Rate limit exceeded
+ * - 500: Unexpected server error
+ */
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json();

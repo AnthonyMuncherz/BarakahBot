@@ -1,11 +1,49 @@
+/**
+ * Chat API Route Handler
+ * 
+ * This module implements the chat functionality for the ZakatBot using OpenRouter's API.
+ * It processes incoming chat messages and returns AI-generated responses specifically
+ * focused on Islamic topics like Zakat, Sadaqah, Waqf, and related Fiqh.
+ * 
+ * Environment Variables Required:
+ * - OPENROUTER_API_KEY: API key for OpenRouter service
+ * - NEXT_PUBLIC_SITE_URL: Site URL (defaults to http://localhost:3000)
+ */
+
 import { NextResponse } from 'next/server';
 
+// OpenRouter API configuration
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL_NAME = 'qwen/qwq-32b:free';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'; // Define your site URL
 const APP_TITLE = 'BarakahBot ZakatBot';
 
+/**
+ * POST request handler for the chat API endpoint.
+ * 
+ * @param {Request} req - The incoming HTTP request object
+ * @returns {Promise<NextResponse>} JSON response containing either the AI's reply or error message
+ * 
+ * Expected Request Body:
+ * {
+ *   messages: Array<{
+ *     role: 'user' | 'assistant' | 'system',
+ *     content: string
+ *   }>
+ * }
+ * 
+ * Success Response:
+ * {
+ *   reply: string // The AI-generated response
+ * }
+ * 
+ * Error Response:
+ * {
+ *   error: string // Error message
+ *   status: number // HTTP status code
+ * }
+ */
 export async function POST(req: Request) {
   console.log("Received chat request"); // Log request start
   if (!OPENROUTER_API_KEY) {

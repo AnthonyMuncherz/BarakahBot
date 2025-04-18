@@ -1,3 +1,40 @@
+/**
+ * Fundraising Component
+ * 
+ * Displays emergency fundraising campaigns from verified organizations.
+ * Features a carousel of campaign cards with images and details.
+ * Uses custom UI components for consistent styling.
+ * 
+ * Components:
+ * - Carousel: Custom carousel component with navigation
+ * - Card: UI component for campaign display
+ * - Image: Next.js optimized image component
+ * 
+ * Features:
+ * - Responsive carousel layout
+ * - Campaign cards with image placeholders
+ * - Campaign details including title, organizer, and amount
+ * - Navigation buttons for carousel control
+ * 
+ * Data Structure:
+ * fundraisingCampaigns = [
+ *   {
+ *     imageSrc: string,
+ *     title: string,
+ *     organizer: string,
+ *     collected: string,
+ *     link: string
+ *   }
+ * ]
+ * 
+ * Carousel Options:
+ * - Aligned to start
+ * - Loop enabled
+ * - Responsive breakpoints for different screen sizes
+ * 
+ * Props: None
+ */
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';

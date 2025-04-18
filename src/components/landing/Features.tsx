@@ -1,3 +1,31 @@
+/**
+ * Features Component
+ * 
+ * Displays the key features and trust factors of BarakahBot.
+ * Uses a list of features with animated checkmarks and descriptions.
+ * Includes an image placeholder for visual representation.
+ * 
+ * Components:
+ * - AnimatedContainer: Wrapper for animated content
+ * - Motion components: For smooth animations and transitions
+ * - CheckCircle: Icon from Lucide for feature bullets
+ * 
+ * Features:
+ * - Responsive two-column layout
+ * - Animated feature list with staggered appearance
+ * - Custom animations for image and content
+ * - Link to more information about BarakahBot
+ * 
+ * Data Structure:
+ * features = [
+ *   {
+ *     text: string  // Description of each feature
+ *   }
+ * ]
+ * 
+ * Props: None
+ */
+
 'use client';
 
 import React from 'react';

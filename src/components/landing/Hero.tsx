@@ -1,3 +1,24 @@
+/**
+ * Hero Component
+ * 
+ * The main landing page hero section that introduces BarakahBot to visitors.
+ * Features a banner, headline, description, and call-to-action buttons.
+ * Uses Framer Motion for animations and responsive design for different screen sizes.
+ * 
+ * Components:
+ * - Banner: Displays location-specific text
+ * - AnimatedContainer: Wrapper for animated content
+ * - Motion components: For smooth animations and transitions
+ * 
+ * Features:
+ * - Responsive layout (mobile-first approach)
+ * - Animated text and content appearance
+ * - Call-to-action buttons for Zakat calculation and registration
+ * - Custom styling using Tailwind CSS
+ * 
+ * Props: None
+ */
+
 'use client';
 
 import React from 'react';
