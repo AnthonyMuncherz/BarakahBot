@@ -64,7 +64,7 @@ const CampaignCard = ({ campaign }: CampaignCardProps) => {
         {/* Buttons */}
         <div className="flex gap-2">
           <Link
-            href={`/campaigns/${campaign.$id}`}
+            href={`/campaigns/${campaign.$id}/report`}
             className="flex-1 px-4 py-2 text-center text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
           >
             Learn More
