@@ -95,7 +95,7 @@ const ChatInterface = () => {
       const botMessage: Message = {
         id: Date.now().toString() + '-calc-trigger',
         role: 'assistant',
-        content: "I’ve opened the calculator for you. Please enter your assets, and I’ll compute your Zakat obligation.",
+        content: "I've opened the calculator for you. Please enter your assets, and I'll compute your Zakat obligation.",
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botMessage]);
@@ -126,7 +126,7 @@ const ChatInterface = () => {
       const botReply: Message = {
         id: Date.now().toString() + '-bot',
         role: 'assistant',
-        content: data.reply || 'Sorry, I couldn’t get a response.',
+        content: data.reply || "Sorry, I couldn't get a response.",
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botReply]);
@@ -139,6 +139,70 @@ const ChatInterface = () => {
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePayment = async (amount: number) => {
+    setIsPaymentLoading(true);
+    try {
+      const response = await fetch('/api/checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: amount,
+          userId: user?.$id || 'anonymous',
+          campaign: `Zakat Payment - ${selectedState}`
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error('Error:', data.error);
+        
+        const errorMsg: Message = {
+          id: Date.now().toString() + '-payment-error',
+          role: 'assistant',
+          content: `Sorry, there was an error processing your payment: ${data.error}`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        
+        return;
+      }
+
+      if (data.sessionId) {
+        console.log("Redirecting to Stripe session:", data.sessionId);
+        
+        // Use Stripe.js to properly redirect to checkout
+        const stripe = await stripePromise;
+        if (!stripe) {
+          throw new Error('Failed to load Stripe');
+        }
+        
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: data.sessionId
+        });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      
+      const errorMsg: Message = {
+        id: Date.now().toString() + '-payment-error',
+        role: 'assistant',
+        content: 'Sorry, there was an error processing your payment. Please try again later.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMsg]);
+      
+    } finally {
+      setIsPaymentLoading(false);
     }
   };
 
@@ -161,20 +225,39 @@ const ChatInterface = () => {
 
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
           {messages.map((msg, i) => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] px-5 py-4 rounded-2xl ${msg.role === 'user' ? 'bg-secondary text-secondary-foreground rounded-tr-none' : 'bg-muted text-primary rounded-tl-none'}`}>
-                <div className="flex items-center gap-2 mb-1">
-                  {msg.role === 'assistant' ? <Bot size={16} className="text-primary" /> : <User size={16} className="text-secondary-foreground" />}
-                  <span className="text-xs opacity-70">
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+            <div key={msg.id} className="flex flex-col">
+              <div className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] px-5 py-4 rounded-2xl ${msg.role === 'user' ? 'bg-secondary text-secondary-foreground rounded-tr-none' : 'bg-muted text-primary rounded-tl-none'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    {msg.role === 'assistant' ? <Bot size={16} className="text-primary" /> : <User size={16} className="text-secondary-foreground" />}
+                    <span className="text-xs opacity-70">
+                      {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  {msg.role === 'assistant' ? (
+                    <TypewriterMessage content={msg.content} onComplete={i === messages.length - 1 ? handleTypingComplete : undefined} />
+                  ) : (
+                    <p className="text-base whitespace-pre-wrap">{msg.content}</p>
+                  )}
                 </div>
-                {msg.role === 'assistant' ? (
-                  <TypewriterMessage content={msg.content} onComplete={i === messages.length - 1 ? handleTypingComplete : undefined} />
-                ) : (
-                  <p className="text-base whitespace-pre-wrap">{msg.content}</p>
-                )}
               </div>
+              
+              {msg.isCalculationResult && msg.calculatedAmount && msg.calculatedAmount > 0 && (
+                <div className={`mt-2 flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <Button 
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2"
+                    onClick={() => handlePayment(msg.calculatedAmount!)}
+                    disabled={isPaymentLoading}
+                  >
+                    {isPaymentLoading ? (
+                      <RefreshCw size={16} className="animate-spin" />
+                    ) : (
+                      <CreditCard size={16} />
+                    )}
+                    Pay your Zakat here
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
 
