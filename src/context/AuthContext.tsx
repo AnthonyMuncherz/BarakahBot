@@ -59,7 +59,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       // Check session via API route to update user state AFTER successful login
       await checkSession(); 
-      router.push('/dashboard');
+      
+      // Check if user has admin label and redirect accordingly
+      if (user?.labels?.includes('admin')) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
       router.refresh();
     } catch (error: any) {
       console.error("Login failed in context:", error);

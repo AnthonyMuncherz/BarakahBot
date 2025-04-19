@@ -67,6 +67,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
 
+    // Redirect admin users to admin dashboard
+    if (user.labels?.includes('admin')) {
+      router.push('/admin/dashboard');
+      return;
+    }
+
     const fetchDonations = async () => {
       try {
         console.log('Current user:', {

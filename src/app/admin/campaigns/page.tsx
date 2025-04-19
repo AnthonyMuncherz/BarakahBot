@@ -19,9 +19,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter // Added for create/edit forms
 } from "@/components/ui/dialog";
-import { databases } from "@/lib/appwrite-client";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
+import { Label } from "@/components/ui/label"; // Added for forms
+import { Textarea } from "@/components/ui/textarea"; // Added for description
+import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
+// Remove direct Appwrite client import
+// import { databases } from "@/lib/appwrite-client"; 
 
 interface Campaign {
   $id: string;
@@ -29,11 +33,22 @@ interface Campaign {
   description: string;
   target_amount: number;
   current_amount: number;
-  status: string;
+  status: string; // e.g., 'active', 'scheduled', 'completed'
   start_date: string;
   end_date: string;
   $createdAt: string;
 }
+
+// Add state for forms
+const initialCampaignFormData = {
+  title: "",
+  description: "",
+  target_amount: 0,
+  current_amount: 0, // Usually starts at 0 for new campaigns
+  status: "scheduled", // Default status
+  start_date: new Date().toISOString().split('T')[0], // Default to today
+  end_date: new Date().toISOString().split('T')[0], // Default to today
+};
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -41,77 +56,160 @@ export default function CampaignsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  // State for Create/Edit Dialog
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [currentCampaign, setCurrentCampaign] = useState<Campaign | null>(null);
+  const [formData, setFormData] = useState(initialCampaignFormData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
   useEffect(() => {
     fetchCampaigns();
-  }, []);
+    // Add status and searchTerm as dependencies to refetch when filters change
+  }, [searchTerm, selectedStatus]);
 
   const fetchCampaigns = async () => {
+    setLoading(true);
     try {
-      const response = await databases.listDocuments(
-        "barakah_db",
-        "campaigns"
-      );
-      setCampaigns(response.documents as Campaign[]);
+      // Fetch campaigns from the new protected API route
+      const queryParams = new URLSearchParams();
+      if (searchTerm) queryParams.set('search', searchTerm);
+      if (selectedStatus !== 'all') queryParams.set('status', selectedStatus);
+
+      const response = await fetch(`/api/admin/campaigns?${queryParams.toString()}`);
+
+      if (!response.ok) {
+        // Handle non-OK responses, potentially redirect to login/access-denied if 401/403
+        console.error('Error fetching campaigns API:', response.status, await response.text());
+        // Optionally check status and redirect
+        if (response.status === 401 || response.status === 403) {
+          // Redirect to login or access denied - middleware might handle this, but redundant check is safe
+          // router.push('/access-denied'); 
+        }
+        setCampaigns([]); // Clear campaigns on error
+        return;
+      }
+
+      const data = await response.json();
+      setCampaigns(data as Campaign[]);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
+      setCampaigns([]); // Clear campaigns on error
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateCampaign = async (data: Partial<Campaign>) => {
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleCreateCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
     try {
-      await databases.createDocument(
-        "barakah_db",
-        "campaigns",
-        "unique()",
-        data
-      );
-      fetchCampaigns();
+      // Call the new protected API route for creation
+      const response = await fetch('/api/admin/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        console.error('Error creating campaign API:', response.status, await response.text());
+        // Handle error response (e.g., show toast)
+        return;
+      }
+
+      // Assuming success returns the new campaign data, though not strictly needed for refetch
+      // const newCampaign = await response.json();
+
+      fetchCampaigns(); // Refresh the list
+      setIsCreateDialogOpen(false); // Close dialog
+      setFormData(initialCampaignFormData); // Reset form
     } catch (error) {
       console.error("Error creating campaign:", error);
+      // Handle error (e.g., show toast)
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleUpdateCampaign = async (campaignId: string, data: Partial<Campaign>) => {
+  const handleUpdateCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentCampaign) return;
+    setIsSubmitting(true);
     try {
-      await databases.updateDocument(
-        "barakah_db",
-        "campaigns",
-        campaignId,
-        data
-      );
-      fetchCampaigns();
+      // Call a new protected API route for update (e.g., PUT /api/admin/campaigns/[id])
+      // You'll need to create this route handler
+      const response = await fetch(`/api/admin/campaigns/${currentCampaign.$id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        console.error('Error updating campaign API:', response.status, await response.text());
+        // Handle error response
+        return;
+      }
+
+      fetchCampaigns(); // Refresh the list
+      setIsEditDialogOpen(false); // Close dialog
+      setCurrentCampaign(null); // Clear current campaign
+      setFormData(initialCampaignFormData); // Reset form
     } catch (error) {
       console.error("Error updating campaign:", error);
+      // Handle error
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
 
   const handleDeleteCampaign = async (campaignId: string) => {
     if (window.confirm("Are you sure you want to delete this campaign?")) {
       try {
-        await databases.deleteDocument(
-          "barakah_db",
-          "campaigns",
-          campaignId
-        );
-        fetchCampaigns();
+        // Call a new protected API route for deletion (e.g., DELETE /api/admin/campaigns/[id])
+        // You'll need to create this route handler
+        const response = await fetch(`/api/admin/campaigns/${campaignId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+          console.error('Error deleting campaign API:', response.status, await response.text());
+          // Handle error response
+          return;
+        }
+
+        fetchCampaigns(); // Refresh the list
       } catch (error) {
         console.error("Error deleting campaign:", error);
+        // Handle error
       }
     }
   };
 
-  const filteredCampaigns = campaigns.filter((campaign) => {
-    const matchesSearch =
-      campaign.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus =
-      selectedStatus === "all" || campaign.status === selectedStatus;
+  const openEditDialog = (campaign: Campaign) => {
+    setCurrentCampaign(campaign);
+    setFormData({
+      title: campaign.title,
+      description: campaign.description,
+      target_amount: campaign.target_amount,
+      current_amount: campaign.current_amount,
+      status: campaign.status,
+      start_date: new Date(campaign.start_date).toISOString().split('T')[0],
+      end_date: new Date(campaign.end_date).toISOString().split('T')[0],
+    });
+    setIsEditDialogOpen(true);
+  };
 
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <AdminLayout>
@@ -132,14 +230,16 @@ export default function CampaignsPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border rounded-md p-2"
+              className="border rounded-md p-2 text-sm" // Adjusted classname
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="scheduled">Scheduled</option>
               <option value="completed">Completed</option>
             </select>
-            <Dialog>
+
+            {/* Create Dialog */}
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
@@ -150,9 +250,96 @@ export default function CampaignsPage() {
                 <DialogHeader>
                   <DialogTitle>Create New Campaign</DialogTitle>
                 </DialogHeader>
-                {/* Add create form here */}
+                <form onSubmit={handleCreateCampaign} className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="title">Title</Label>
+                    <Input id="title" name="title" value={formData.title} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea id="description" name="description" value={formData.description} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="target_amount">Target Amount (MYR)</Label>
+                    <Input id="target_amount" name="target_amount" type="number" value={formData.target_amount} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="status">Status</Label>
+                    <select id="status" name="status" value={formData.status} onChange={handleFormChange} className="border rounded-md p-2">
+                      <option value="scheduled">Scheduled</option>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="start_date">Start Date</Label>
+                    <Input id="start_date" name="start_date" type="date" value={formData.start_date} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="end_date">End Date</Label>
+                    <Input id="end_date" name="end_date" type="date" value={formData.end_date} onChange={handleFormChange} required />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create
+                    </Button>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
+
+            {/* Edit Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Campaign</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleUpdateCampaign} className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-title">Title</Label>
+                    <Input id="edit-title" name="title" value={formData.title} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Textarea id="edit-description" name="description" value={formData.description} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-target_amount">Target Amount (MYR)</Label>
+                    <Input id="edit-target_amount" name="target_amount" type="number" value={formData.target_amount} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-current_amount">Current Amount (MYR)</Label>
+                    <Input id="edit-current_amount" name="current_amount" type="number" value={formData.current_amount} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-status">Status</Label>
+                    <select id="edit-status" name="status" value={formData.status} onChange={handleFormChange} className="border rounded-md p-2">
+                      <option value="scheduled">Scheduled</option>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-start_date">Start Date</Label>
+                    <Input id="edit-start_date" name="start_date" type="date" value={formData.start_date} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-end_date">End Date</Label>
+                    <Input id="edit-end_date" name="end_date" type="date" value={formData.end_date} onChange={handleFormChange} required />
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Save Changes
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
           </div>
         </div>
 
@@ -177,25 +364,30 @@ export default function CampaignsPage() {
                       Loading...
                     </TableCell>
                   </TableRow>
+                ) : campaigns.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      No campaigns found.
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  filteredCampaigns.map((campaign) => (
+                  campaigns.map((campaign) => (
                     <TableRow key={campaign.$id}>
                       <TableCell>{campaign.title}</TableCell>
                       <TableCell>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            campaign.status === "active"
+                          className={`px-2 py-1 rounded-full text-xs ${campaign.status === "active"
                               ? "bg-green-100 text-green-800"
                               : campaign.status === "scheduled"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
                         >
                           {campaign.status}
                         </span>
                       </TableCell>
-                      <TableCell>${campaign.target_amount}</TableCell>
-                      <TableCell>${campaign.current_amount}</TableCell>
+                      <TableCell>RM {campaign.target_amount.toFixed(2)}</TableCell>
+                      <TableCell>RM {campaign.current_amount.toFixed(2)}</TableCell>
                       <TableCell>
                         {new Date(campaign.start_date).toLocaleDateString()}
                       </TableCell>
@@ -204,23 +396,14 @@ export default function CampaignsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="p-2"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Edit Campaign</DialogTitle>
-                              </DialogHeader>
-                              {/* Add edit form here */}
-                            </DialogContent>
-                          </Dialog>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="p-2"
+                            onClick={() => openEditDialog(campaign)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
                           <Button
                             variant="destructive"
                             size="sm"
@@ -241,4 +424,4 @@ export default function CampaignsPage() {
       </div>
     </AdminLayout>
   );
-} 
+}
