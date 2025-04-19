@@ -81,13 +81,6 @@ const Features = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-           <Image
-            src="https://unsplash.com/photos/five-children-smiling-while-doing-peace-hand-sign-AEaTUnvneik?utm_content=creditShareLink&utm_medium=referral&utm_source=unsplash.com" // Replace with the actual image path
-            alt="Features Image"
-            layout='fill'
-            className="object-cover rounded-lg"
-            priority // Add this prop to prioritize image loading
-          />
           </motion.div>
         </AnimatedContainer>
 
