@@ -15,6 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from 'lucide-react';
+import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
+import SaveCampaignButton from "@/components/campaigns/SaveCampaignButton";
+import Image from 'next/image';
 
 // Metadata can't be dynamic in client components easily, consider moving or handling differently if needed
 // export const metadata: Metadata = {

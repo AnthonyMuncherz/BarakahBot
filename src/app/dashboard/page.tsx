@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import SaveCampaignButton from "@/components/campaigns/SaveCampaignButton";
 import {
   Dialog,
   DialogContent,
@@ -28,8 +29,8 @@ import {
   CheckCircleIcon,
   Loader2Icon
 } from 'lucide-react';
-import { databases, Query } from '@/lib/appwrite-client';
-import { Models } from 'appwrite';
+import { databases } from '@/lib/appwrite-client';
+import { Query } from 'appwrite';
 import { formatDate } from '@/lib/utils';
 
 interface Donation {
@@ -40,6 +41,15 @@ interface Donation {
   timestamp: string;
   payment_status: string;
   payment_method: string;
+}
+
+interface SavedCampaign {
+  $id: string;
+  campaign_id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  end_date: string;
 }
 
 export default function DashboardPage() {
@@ -53,6 +63,7 @@ export default function DashboardPage() {
   });
   const [donations, setDonations] = useState<Donation[]>([]);
   const [totalDonations, setTotalDonations] = useState(0);
+  const [savedCampaigns, setSavedCampaigns] = useState<SavedCampaign[]>([]);
 
   // Initialize form data when user data is available
   useEffect(() => {
@@ -125,6 +136,50 @@ export default function DashboardPage() {
     fetchDonations();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchSavedCampaigns = async () => {
+      try {
+        // Fetch saved campaign IDs
+        const savedResponse = await databases.listDocuments(
+          'barakah_db',
+          'saved_campaigns',
+          [Query.equal('user_id', user.$id)]
+        );
+
+        if (savedResponse.documents.length === 0) {
+          setSavedCampaigns([]);
+          return;
+        }
+
+        // Fetch campaign details
+        const campaignIds = savedResponse.documents.map(doc => doc.campaign_id);
+        const campaignsResponse = await databases.listDocuments(
+          'barakah_db',
+          'campaigns',
+          [Query.equal('$id', campaignIds)]
+        );
+
+        const campaigns = campaignsResponse.documents.map(campaign => ({
+          $id: campaign.$id,
+          campaign_id: campaign.$id,
+          name: campaign.name,
+          target_amount: campaign.target_amount,
+          current_amount: campaign.current_amount,
+          end_date: campaign.end_date,
+        }));
+
+        setSavedCampaigns(campaigns);
+      } catch (error) {
+        console.error('Error fetching saved campaigns:', error);
+        setSavedCampaigns([]);
+      }
+    };
+
+    fetchSavedCampaigns();
+  }, [user]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -156,27 +211,6 @@ export default function DashboardPage() {
     nextPayment: "15 Days",
     nextAmount: "RM 2,500"
   };
-
-  const mockCampaigns = [
-    {
-      name: "Orphan Support Program",
-      target: "RM 50,000",
-      progress: 75,
-      daysLeft: 5
-    },
-    {
-      name: "Masjid Construction",
-      target: "RM 1,000,000",
-      progress: 45,
-      daysLeft: 60
-    },
-    {
-      name: "Food Bank Initiative",
-      target: "RM 25,000",
-      progress: 90,
-      daysLeft: 2
-    }
-  ];
 
   if (!user) {
     return null; // Or a loading state/redirect to login
@@ -342,20 +376,32 @@ export default function DashboardPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Saved Campaigns</h2>
           <div className="space-y-4">
-            {mockCampaigns.map((campaign, index) => (
-              <Card key={index} className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-medium">{campaign.name}</h3>
-                  <HeartIcon className="w-5 h-5 text-red-500 fill-current" />
-                </div>
-                <p className="text-sm text-gray-600 mb-2">Target: {campaign.target}</p>
-                <Progress value={campaign.progress} className="mb-2" />
-                <div className="flex justify-between text-sm">
-                  <span>{campaign.progress}% Funded</span>
-                  <span>{campaign.daysLeft} days left</span>
-                </div>
+            {savedCampaigns.map((campaign) => {
+              const progress = Math.round((campaign.current_amount / campaign.target_amount) * 100);
+              const daysLeft = Math.max(0, Math.ceil((new Date(campaign.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+              
+              return (
+                <Card key={campaign.$id} className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{campaign.name}</h3>
+                    <SaveCampaignButton campaignId={campaign.campaign_id} />
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Target: RM {campaign.target_amount.toLocaleString()}
+                  </p>
+                  <Progress value={progress} className="mb-2" />
+                  <div className="flex justify-between text-sm">
+                    <span>{progress}% Funded</span>
+                    <span>{daysLeft} days left</span>
+                  </div>
+                </Card>
+              );
+            })}
+            {savedCampaigns.length === 0 && (
+              <Card className="p-4">
+                <p className="text-center text-gray-500">No saved campaigns yet</p>
               </Card>
-            ))}
+            )}
           </div>
         </div>
       </div>
