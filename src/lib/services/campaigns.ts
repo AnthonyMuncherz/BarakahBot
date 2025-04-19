@@ -29,13 +29,15 @@ export async function getCampaigns({ search, category, sortBy = 'newest' }: GetC
     const queries = [];
 
     if (search) {
-      queries.push(Query.search('search_index', search));
+      // Use the fulltext index for title search
+      queries.push(Query.search('title', search));
     }
 
     if (category) {
       queries.push(Query.equal('category', category));
     }
 
+    // Add sorting
     switch (sortBy) {
       case 'goal_desc':
         queries.push(Query.orderDesc('goal'));
@@ -58,8 +60,13 @@ export async function getCampaigns({ search, category, sortBy = 'newest' }: GetC
     );
 
     return response.documents as unknown as Campaign[];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching campaigns:', error);
+    if (error?.code === 400 && error?.type === 'general_query_invalid') {
+      console.warn('Search index might not be ready yet. Retrying without search...');
+      // Retry without search query
+      return getCampaigns({ category, sortBy });
+    }
     return [];
   }
 }
@@ -71,9 +78,10 @@ export async function getCampaign(id: string) {
       CAMPAIGNS_COLLECTION_ID,
       id
     );
+    // Cast the single document response
     return response as unknown as Campaign;
   } catch (error) {
     console.error('Error fetching campaign:', error);
-    throw error;
+    throw error; // Re-throw the error for the caller to handle
   }
-} 
+}
