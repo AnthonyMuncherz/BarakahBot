@@ -81,10 +81,14 @@ const Features = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
+            <Image 
+              src="/images/donate.jpg" // replace with your image path
+              alt="Features Image"
+              layout="fill"
+              objectFit="cover"
+            />
           </motion.div>
         </AnimatedContainer>
-
-      
 
         {/* Text Content */}
         <AnimatedContainer className="space-y-6">
