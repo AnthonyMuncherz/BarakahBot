@@ -31,11 +31,11 @@ interface Campaign {
   $id: string;
   title: string;
   description: string;
-  target_amount: number;
-  current_amount: number;
-  status: string; // e.g., 'active', 'scheduled', 'completed'
-  start_date: string;
-  end_date: string;
+  imageUrl?: string; // Make optional if not always present
+  goal: number;      // Changed from target_amount
+  raised: number;    // Changed from current_amount
+  daysLeft?: number;  // Added, make optional
+  category?: string; // Added, make optional
   $createdAt: string;
 }
 
@@ -43,11 +43,11 @@ interface Campaign {
 const initialCampaignFormData = {
   title: "",
   description: "",
-  target_amount: 0,
-  current_amount: 0, // Usually starts at 0 for new campaigns
-  status: "scheduled", // Default status
-  start_date: new Date().toISOString().split('T')[0], // Default to today
-  end_date: new Date().toISOString().split('T')[0], // Default to today
+  imageUrl: "",     // Added
+  goal: 0,         // Changed
+  raised: 0,       // Added (might be needed for edit display, but not set in create)
+  daysLeft: 0,     // Added (might be needed for edit display, but not set in create)
+  category: "",     // Added
 };
 
 export default function CampaignsPage() {
@@ -92,6 +92,7 @@ export default function CampaignsPage() {
       }
 
       const data = await response.json();
+      console.log('Received campaigns data:', data); // Add logging
       setCampaigns(data as Campaign[]);
     } catch (error) {
       console.error("Error fetching campaigns:", error);
@@ -113,11 +114,20 @@ export default function CampaignsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Call the new protected API route for creation
+      // Ensure formData aligns with what API expects (e.g., using 'goal')
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        imageUrl: formData.imageUrl, // Include if editing/creating
+        goal: formData.goal,       // Use goal
+        category: formData.category, // Include if editing/creating
+        // Do not send 'raised' or 'daysLeft' if they are calculated/managed server-side
+      };
+
       const response = await fetch('/api/admin/campaigns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload), // Send the corrected payload
       });
 
       if (!response.ok) {
@@ -145,12 +155,24 @@ export default function CampaignsPage() {
     if (!currentCampaign) return;
     setIsSubmitting(true);
     try {
-      // Call a new protected API route for update (e.g., PUT /api/admin/campaigns/[id])
-      // You'll need to create this route handler
+      // Ensure formData aligns with what API expects (e.g., using 'goal', 'raised')
+      // When updating, you might only want to send editable fields.
+      // 'raised' and 'daysLeft' are often calculated/managed by backend logic or separate processes (like donations).
+      // Only include them if your API explicitly allows updating them directly.
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        goal: formData.goal,
+        category: formData.category,
+        // raised: formData.raised, // Likely shouldn't send this
+        // daysLeft: formData.daysLeft, // Likely shouldn't send this
+      };
+
       const response = await fetch(`/api/admin/campaigns/${currentCampaign.$id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload), // Send the corrected payload
       });
 
       if (!response.ok) {
@@ -196,16 +218,34 @@ export default function CampaignsPage() {
     }
   };
 
+  // Helper function to safely format dates
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) { // Check if the date is valid
+        console.warn('Invalid date string encountered:', dateString);
+        return 'Invalid Date';
+      }
+      return date.toLocaleDateString();
+    } catch (e) {
+      console.error('Error formatting date:', dateString, e);
+      return 'Invalid Date';
+    }
+  };
+
   const openEditDialog = (campaign: Campaign) => {
+    console.log('Opening edit dialog for:', campaign); // Add logging
     setCurrentCampaign(campaign);
+
     setFormData({
-      title: campaign.title,
-      description: campaign.description,
-      target_amount: campaign.target_amount,
-      current_amount: campaign.current_amount,
-      status: campaign.status,
-      start_date: new Date(campaign.start_date).toISOString().split('T')[0],
-      end_date: new Date(campaign.end_date).toISOString().split('T')[0],
+      title: campaign.title ?? '',
+      description: campaign.description ?? '',
+      imageUrl: campaign.imageUrl ?? '', 
+      goal: campaign.goal ?? 0,          
+      raised: campaign.raised ?? 0,        // Use raised for display in edit form
+      daysLeft: campaign.daysLeft ?? 0,    // Use daysLeft for display in edit form
+      category: campaign.category ?? '', 
     });
     setIsEditDialogOpen(true);
   };
@@ -260,24 +300,22 @@ export default function CampaignsPage() {
                     <Textarea id="description" name="description" value={formData.description} onChange={handleFormChange} required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="target_amount">Target Amount (MYR)</Label>
-                    <Input id="target_amount" name="target_amount" type="number" value={formData.target_amount} onChange={handleFormChange} required />
+                    <Label htmlFor="imageUrl">Image URL</Label>
+                    <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="status">Status</Label>
-                    <select id="status" name="status" value={formData.status} onChange={handleFormChange} className="border rounded-md p-2">
-                      <option value="scheduled">Scheduled</option>
-                      <option value="active">Active</option>
-                      <option value="completed">Completed</option>
+                    <Label htmlFor="goal">Goal Amount (MYR)</Label>
+                    <Input id="goal" name="goal" type="number" value={formData.goal} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="category">Category</Label>
+                    <select id="category" name="category" value={formData.category} onChange={handleFormChange} className="border rounded-md p-2">
+                      <option value="">Select Category</option>
+                      <option value="Education">Education</option>
+                      <option value="Medical Aid">Medical Aid</option>
+                      <option value="Mosque Building">Mosque Building</option>
+                      <option value="Food Bank">Food Bank</option>
                     </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="start_date">Start Date</Label>
-                    <Input id="start_date" name="start_date" type="date" value={formData.start_date} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="end_date">End Date</Label>
-                    <Input id="end_date" name="end_date" type="date" value={formData.end_date} onChange={handleFormChange} required />
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
@@ -306,28 +344,30 @@ export default function CampaignsPage() {
                     <Textarea id="edit-description" name="description" value={formData.description} onChange={handleFormChange} required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-target_amount">Target Amount (MYR)</Label>
-                    <Input id="edit-target_amount" name="target_amount" type="number" value={formData.target_amount} onChange={handleFormChange} required />
+                    <Label htmlFor="edit-imageUrl">Image URL</Label>
+                    <Input id="edit-imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-current_amount">Current Amount (MYR)</Label>
-                    <Input id="edit-current_amount" name="current_amount" type="number" value={formData.current_amount} onChange={handleFormChange} required />
+                    <Label htmlFor="edit-goal">Goal Amount (MYR)</Label>
+                    <Input id="edit-goal" name="goal" type="number" value={formData.goal} onChange={handleFormChange} required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="edit-status">Status</Label>
-                    <select id="edit-status" name="status" value={formData.status} onChange={handleFormChange} className="border rounded-md p-2">
-                      <option value="scheduled">Scheduled</option>
-                      <option value="active">Active</option>
-                      <option value="completed">Completed</option>
+                    <Label htmlFor="edit-raised">Raised Amount (MYR)</Label>
+                    <Input id="edit-raised" name="raised" type="number" value={formData.raised} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-daysLeft">Days Left</Label>
+                    <Input id="edit-daysLeft" name="daysLeft" type="number" value={formData.daysLeft} onChange={handleFormChange} required />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="edit-category">Category</Label>
+                    <select id="edit-category" name="category" value={formData.category} onChange={handleFormChange} className="border rounded-md p-2">
+                      <option value="">Select Category</option>
+                      <option value="Education">Education</option>
+                      <option value="Medical Aid">Medical Aid</option>
+                      <option value="Mosque Building">Mosque Building</option>
+                      <option value="Food Bank">Food Bank</option>
                     </select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-start_date">Start Date</Label>
-                    <Input id="edit-start_date" name="start_date" type="date" value={formData.start_date} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-end_date">End Date</Label>
-                    <Input id="edit-end_date" name="end_date" type="date" value={formData.end_date} onChange={handleFormChange} required />
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
@@ -349,11 +389,10 @@ export default function CampaignsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Target Amount</TableHead>
-                  <TableHead>Current Amount</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Goal Amount</TableHead>
+                  <TableHead>Raised Amount</TableHead>
+                  <TableHead>Days Left</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -374,26 +413,10 @@ export default function CampaignsPage() {
                   campaigns.map((campaign) => (
                     <TableRow key={campaign.$id}>
                       <TableCell>{campaign.title}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${campaign.status === "active"
-                              ? "bg-green-100 text-green-800"
-                              : campaign.status === "scheduled"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                        >
-                          {campaign.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>RM {campaign.target_amount.toFixed(2)}</TableCell>
-                      <TableCell>RM {campaign.current_amount.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {new Date(campaign.start_date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(campaign.end_date).toLocaleDateString()}
-                      </TableCell>
+                      <TableCell>{campaign.category ?? 'N/A'}</TableCell>
+                      <TableCell>RM {campaign.goal?.toFixed(2) ?? '0.00'}</TableCell>
+                      <TableCell>RM {campaign.raised?.toFixed(2) ?? '0.00'}</TableCell>
+                      <TableCell>{campaign.daysLeft ?? 'N/A'}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button

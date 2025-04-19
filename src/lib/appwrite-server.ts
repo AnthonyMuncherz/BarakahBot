@@ -7,6 +7,7 @@ const client = new Client()
 
 const users = new Users(client);
 const databases = new Databases(client);
+const account = new Account(client);
 
 // Database and collection IDs
 const CAMPAIGNS_DATABASE_ID = 'barakah_db';
@@ -42,4 +43,4 @@ export async function getCampaign(campaignId: string) {
   }
 }
 
-export { client, users, databases, ID }; 
+export { client, users, databases, ID, account }; 
