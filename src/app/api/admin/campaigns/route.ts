@@ -91,14 +91,22 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
     // Add validation for incoming data here
+    
+    // Ensure required fields have default values
+    const campaignData = {
+      ...data,
+      raised: data.raised ?? 0,
+      daysLeft: data.daysLeft ?? 30,
+      slug: data.slug ?? (data.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || ID.unique())
+    };
 
     const newCampaign = await databases.createDocument(
       process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
       'campaigns',
       ID.unique(),
-      data,
-      // Add appropriate permissions - e.g., read for 'any', write for 'role:admin'
-      [`read("any")`, `write("role:admin")`]
+      campaignData,
+      // Updated permissions format
+      [`read("any")`, `write("users")`]
     );
 
     return NextResponse.json(newCampaign, { status: 201 });

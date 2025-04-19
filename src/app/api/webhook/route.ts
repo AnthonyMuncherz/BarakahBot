@@ -15,7 +15,7 @@ import { headers } from 'next/headers';
 import { databases, ID } from '@/lib/appwrite-server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16'
+  apiVersion: '2023-10-16' as any,
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
             payment_status: 'completed',
             payment_method: paymentMethod,
           },
-          // Add permissions for the document owner
+          // Updated permissions for the document owner
           [`read("user:${userId}")`, `read("users")`]
         );
         console.log('Donation record created in Appwrite:', doc);

@@ -2,13 +2,32 @@ import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Campaign } from "@/lib/services/campaigns";
+import { useState, useEffect } from "react";
 
 interface CampaignCardProps {
   campaign: Campaign;
 }
 
+// Function to validate if a string is a valid URL
+function isValidURL(string: string) {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 export function CampaignCard({ campaign }: CampaignCardProps) {
   const progress = Math.round((campaign.raised / campaign.goal) * 100);
+  const [imageUrl, setImageUrl] = useState<string>("/images/placeholder-campaign.jpg");
+
+  useEffect(() => {
+    // Validate the imageUrl when component mounts
+    if (campaign.imageUrl && isValidURL(campaign.imageUrl)) {
+      setImageUrl(campaign.imageUrl);
+    }
+  }, [campaign.imageUrl]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-MY", {
@@ -24,7 +43,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
       {/* Campaign Image */}
       <div className="relative h-48 w-full">
         <Image
-          src={campaign.imageUrl}
+          src={imageUrl}
           alt={campaign.title}
           fill
           className="object-cover"
@@ -65,13 +84,13 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
         {/* Actions */}
         <div className="flex gap-2">
           <Link
-            href={`/campaigns/${campaign.$id}`}
+            href={`/campaigns/${campaign.slug || campaign.$id}`}
             className="flex-1 px-4 py-2 text-center text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
           >
             Learn More
           </Link>
           <Link
-            href={`/campaigns/${campaign.$id}/donate`}
+            href={`/campaigns/${campaign.slug || campaign.$id}/donate`}
             className="flex-1 px-4 py-2 text-center text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
           >
             Donate Now
