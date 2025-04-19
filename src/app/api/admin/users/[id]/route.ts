@@ -10,8 +10,8 @@ interface UpdateUserData {
     labels?: string[];
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-    const userIdToUpdate = params.id;
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id: userIdToUpdate } = await params;
 
     if (!userIdToUpdate) {
         return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -57,11 +57,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
             try {
                 updatedUser = await users.updateEmail(userIdToUpdate, email);
             } catch (e: any) {
-                 console.error(`Error updating email for user ${userIdToUpdate}:`, e);
-                 // Check for specific Appwrite errors like email already exists
-                 if (e instanceof AppwriteException && e.code === 409) { // 409 Conflict (User already exists)
-                     updateError = updateError ? `${updateError}; Email already exists` : 'Email already exists';
+                 console.error(`Error/Warning during email update for user ${userIdToUpdate}:`, e);
+                 // Check for specific Appwrite errors
+                 if (e instanceof AppwriteException && e.code === 409) {
+                     if (e.type === 'user_target_already_exists') {
+                         // Log as warning, target existing isn't a failure of the email update itself
+                         console.warn(`Appwrite Warning: User target already exists for email update (User: ${userIdToUpdate}). Continuing...`);
+                         // Don't set updateError for this specific case unless email was the ONLY update requested.
+                         // If other updates follow, let them proceed.
+                         // If this was the ONLY update, we might consider it a success conceptually.
+                     } else {
+                         // Handle other 409 conflicts (e.g., email belongs to another user)
+                         updateError = updateError ? `${updateError}; Email conflict (already in use)` : 'Email conflict (already in use)';
+                     }
                  } else {
+                    // Handle other errors during email update
                     updateError = updateError ? `${updateError}; Email update failed` : 'Email update failed';
                  }
             }
