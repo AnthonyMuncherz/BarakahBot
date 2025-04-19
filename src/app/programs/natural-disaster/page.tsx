@@ -7,6 +7,7 @@ export default function NaturalDisasterPage() {
     <section className="py-16 md:py-24 bg-brand-cream">
       <div className="container max-w-screen-xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
@@ -29,10 +30,16 @@ export default function NaturalDisasterPage() {
             </ul>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/dashboard" className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary bg-transparent rounded-xl border border-primary hover:bg-primary/5 hover:scale-105 shadow-md transition-all">
+              <Link
+                href="/dashboard"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary bg-transparent rounded-xl border border-primary hover:bg-primary/5 hover:scale-105 shadow-md transition-all"
+              >
                 ← Back to Dashboard
               </Link>
-              <Link href="/zakatbot" className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 hover:scale-105 shadow-md transition-all">
+              <Link
+                href="/zakatbot"
+                className="group inline-flex items-center justify-center gap-2 px-6 py-4 text-base font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary/90 hover:scale-105 shadow-md transition-all"
+              >
                 🌐 Contribute Now
               </Link>
             </div>
@@ -47,8 +54,8 @@ export default function NaturalDisasterPage() {
           >
             <img
               src="/images/natural-disaster.png"
-              alt="Natural Disaster Relief"
-              className="w-3/4 max-w-md object-cover rounded-2xl shadow-md"
+              alt="Illustration showing humanitarian aid for natural disaster victims"
+              className="w-full max-w-md object-cover rounded-2xl shadow-md"
             />
           </motion.div>
         </div>
