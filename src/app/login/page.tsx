@@ -47,11 +47,26 @@ export default function LoginPage() {
       }
 
       // Login successful, Appwrite session cookie is set by the API route
-      // Fetch current user or redirect
-      // For now, just redirect to dashboard
-      router.push('/dashboard'); 
-      // Optionally refresh the page to ensure auth state is picked up by context/layout
-      // router.refresh(); 
+
+      // --- REVISED REDIRECTION LOGIC --- 
+      // 1. Fetch user details AFTER successful login API call
+      const userDetailsResponse = await fetch('/api/auth/me');
+      if (!userDetailsResponse.ok) {
+        // If fetching user details fails, maybe redirect to a generic error or just dashboard
+        console.error('Login succeeded but failed to fetch user details. Redirecting to dashboard.');
+        router.push('/dashboard'); 
+        return; // Exit the function early
+      }
+      const loggedInUser = await userDetailsResponse.json();
+
+      // 2. Redirect based on labels
+      if (loggedInUser?.labels?.includes('admin')) {
+        router.push('/admin/dashboard'); // Redirect admins
+      } else {
+        router.push('/dashboard'); // Redirect regular users
+      }
+      // No need for router.refresh() here, the context will update on the navigated page
+      // --- END REVISED REDIRECTION LOGIC --- 
 
     } catch (err: any) {
       setError(err.message || 'An error occurred during login.');

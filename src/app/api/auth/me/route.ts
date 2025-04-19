@@ -75,7 +75,8 @@ export async function GET(request: Request) {
                 name: user.name,
                 email: user.email,
                 emailVerification: user.emailVerification,
-                prefs: user.prefs 
+                prefs: user.prefs,
+                labels: user.labels
             }
         }, { status: 200 });
     } catch (e) {
