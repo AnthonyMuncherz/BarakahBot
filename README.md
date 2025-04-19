@@ -1,5 +1,3 @@
-Okay, here is the updated and detailed README.md file, tailored for a hackathon context and explaining the different modules based on the provided code.
-
 # BarakahBot: Revolutionizing Zakat Collection and Distribution
 
 **Project for UM Hackathon 2025**
@@ -52,7 +50,6 @@ BarakahBot is built as a full-stack application using the Next.js App Router, pr
 
 ## Module Breakdown
 
-Here's a detailed look at the core modules and their components:
 
 ### 1. Authentication & User Management (`src/app/api/auth/`, `src/context/AuthContext.tsx`, `src/middleware.ts`)
 
