@@ -1,6 +1,10 @@
+// 
+
 'use client';
 
 import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +14,9 @@ import {
 } from '@/components/ui/radio-group';
 
 export default function StaticDonatePage() {
+  const params = useParams();
+  const slug = params?.id;
+
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('FPX');
@@ -34,6 +41,15 @@ export default function StaticDonatePage() {
             onChange={e => setAmount(e.target.value)}
           />
           <Button onClick={() => setStep(2)} disabled={!amount}>Next</Button>
+
+          {/* 🔗 Learn More Link as button */}
+          <div className="text-right">
+            <Link href={`/campaigns/${slug}/report`}>
+              <Button variant="link" className="text-sm text-primary hover:underline mt-2">
+                📊 Learn More about this campaign
+              </Button>
+            </Link>
+          </div>
         </Card>
       )}
 
