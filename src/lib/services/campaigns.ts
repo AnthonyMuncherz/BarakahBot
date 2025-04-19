@@ -15,6 +15,7 @@ export interface Campaign {
   raised: number;
   daysLeft: number;
   category?: string;
+  slug?: string;
   $createdAt: string;
 }
 
@@ -83,5 +84,24 @@ export async function getCampaign(id: string) {
   } catch (error) {
     console.error('Error fetching campaign:', error);
     throw error; // Re-throw the error for the caller to handle
+  }
+}
+
+// ✅ New: Fetch a campaign by slug (used for detail page)
+export async function getCampaignBySlug(slug: string) {
+  try {
+    const response = await databases.listDocuments(
+      process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+      CAMPAIGNS_COLLECTION_ID,
+      [
+        Query.equal('slug', slug),
+        Query.limit(1)
+      ]
+    );
+
+    return response.documents[0] as unknown as Campaign;
+  } catch (error) {
+    console.error('Error fetching campaign by slug:', error);
+    return null;
   }
 }
