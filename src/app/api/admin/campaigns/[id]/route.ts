@@ -33,9 +33,9 @@ async function verifyAdminSession(): Promise<boolean> {
 // PUT handler to update a campaign
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const campaignId = params.id;
+  const { id: campaignId } = await params;
   console.log(`PUT request received for campaign ID: ${campaignId}`);
 
   if (!campaignId) {
@@ -75,7 +75,8 @@ export async function PUT(
     if (data.imageUrl !== undefined) updatePayload.imageUrl = data.imageUrl;
     if (data.goal !== undefined) updatePayload.goal = data.goal;
     if (data.category !== undefined) updatePayload.category = data.category;
-    // Exclude fields like raised, daysLeft, etc.
+    if (data.daysLeft !== undefined) updatePayload.daysLeft = Number(data.daysLeft);
+    // Exclude fields like raised, etc.
 
     // Check if there's anything to update
     if (Object.keys(updatePayload).length === 0) {
