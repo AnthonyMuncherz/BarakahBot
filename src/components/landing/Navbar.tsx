@@ -21,7 +21,7 @@
  * - useAuth: Provides user authentication state and functions
  * 
  * Navigation Items:
- * - Base: Home, ZakatBot, Campaigns
+ * - Base: Home, ZakatBot, Campaigns, About Us
  * - Authenticated: Adds Dashboard
  * - Auth Buttons: Login/Register or Welcome/Logout
  * 
@@ -46,6 +46,7 @@ const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'ZakatBot', path: '/zakatbot' },
     { name: 'Campaigns', path: '/campaigns' },
+    { name: 'About Us', path: '/about' },
   ];
 
   // Combine nav items, adding Dashboard if logged in
