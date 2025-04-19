@@ -71,6 +71,9 @@ export async function GET(request: Request) {
       queries
     );
 
+    // Add logging
+    console.log('Appwrite campaigns response:', JSON.stringify(response, null, 2));
+
     return NextResponse.json(response.documents);
   } catch (error) {
     console.error('Error fetching campaigns server-side:', error);
