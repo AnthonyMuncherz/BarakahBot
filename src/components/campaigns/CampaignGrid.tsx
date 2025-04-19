@@ -12,13 +12,18 @@ export function CampaignGrid({ initialCampaigns }: CampaignGridProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    // ✅ Filter out unwanted campaigns (e.g., test data)
-    const filtered = initialCampaigns.filter(
-      (campaign) =>
-        campaign.title.trim().toLowerCase() !== 'ayonima' &&
-        campaign.imageUrl &&
-        campaign.imageUrl.startsWith('http')
-    );
+    console.log('Initial campaigns:', initialCampaigns);
+    
+    // Only filter out campaigns without valid image URLs
+    const filtered = initialCampaigns.filter((campaign) => {
+      const isValid = campaign.imageUrl && campaign.imageUrl.startsWith('http');
+      if (!isValid) {
+        console.log('Filtered out campaign:', campaign.title, 'due to invalid image URL:', campaign.imageUrl);
+      }
+      return isValid;
+    });
+    
+    console.log('Filtered campaigns:', filtered);
     setCampaigns(filtered);
   }, [initialCampaigns]);
 
