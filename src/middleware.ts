@@ -20,14 +20,17 @@ async function verifySession(sessionCookie: string): Promise<{ isValid: boolean;
     appwriteClient.setSession(sessionCookie);
 
     // Attempt to get the user associated with the session
+    console.log('[Middleware] Verifying session...');
     const user = await account.get();
+    console.log('[Middleware] User fetched:', user);
 
     // Check if user exists and has the 'admin' label
     const isAdmin = user.labels?.includes('admin') || false;
+    console.log(`[Middleware] User ID: ${user.$id}, IsAdmin: ${isAdmin}, Labels: ${user.labels}`);
 
     return { isValid: true, isAdmin }; // Session is valid
   } catch (error) {
-    console.error('Session verification failed:', error);
+    console.error('[Middleware] Session verification failed:', error);
     // Session is invalid or expired, or user not found
     return { isValid: false, isAdmin: false };
   }

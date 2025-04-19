@@ -20,15 +20,20 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user has admin role
+    // Wait until loading is finished before checking the user
+    if (isLoading) {
+        return; // Don't do anything while loading
+    }
+
+    // Now check if user has admin role
     if (!user || !user.labels?.includes("admin")) {
       router.push("/access-denied");
     }
-  }, [user, router]);
+  }, [user, router, isLoading]);
 
   const menuItems = [
     {
