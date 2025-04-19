@@ -166,7 +166,7 @@ export default function CampaignsPage() {
         goal: formData.goal,
         category: formData.category,
         // raised: formData.raised, // Likely shouldn't send this
-        // daysLeft: formData.daysLeft, // Likely shouldn't send this
+        daysLeft: formData.daysLeft, // Include daysLeft in the update payload
       };
 
       const response = await fetch(`/api/admin/campaigns/${currentCampaign.$id}`, {
