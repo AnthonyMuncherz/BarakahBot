@@ -49,21 +49,21 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 const fundraisingCampaigns = [
   {
-    imageSrc: "/placeholder-fire.jpg", // Replace with actual image path
+    imageSrc: "./images/Victims of Disastrous Inferno.jpg", // Replace with actual image path
     title: "Victims of Disastrous Inferno",
     organizer: "MyCARE",
     collected: "RM 12,500.00",
     link: "/campaigns/inferno",
   },
   {
-    imageSrc: "/placeholder-palestine.jpg", // Replace with actual image path
+    imageSrc: "./images/Fight For Palestinian Right.jpg", // Replace with actual image path
     title: "Fight For Palestinian Right",
     organizer: "Mercy Malaysia",
     collected: "RM 50,000.00",
     link: "/campaigns/palestine",
   },
   {
-    imageSrc: "/placeholder-flood.jpg", // Replace with actual image path
+    imageSrc: "./images/Flood Victims.jpg", // Replace with actual image path
     title: "For Our Beloved Flood Victims",
     organizer: "MyCARE",
     collected: "RM 45,000.50",
