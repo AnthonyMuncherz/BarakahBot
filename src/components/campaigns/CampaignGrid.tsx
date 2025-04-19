@@ -1,42 +1,28 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { CampaignCard } from "./CampaignCard";
+import { Campaign } from '@/lib/services/campaigns';
 
-// Sample campaign data - replace with actual data from your API/database
-const sampleCampaigns = [
-  {
-    id: "1",
-    title: "Emergency Relief Fund",
-    description: "Support families affected by natural disasters with emergency supplies and shelter.",
-    imageUrl: "/images/campaigns/emergency-relief.jpg",
-    goal: 50000,
-    raised: 32500,
-    daysLeft: 15,
-  },
-  {
-    id: "2",
-    title: "Education for All",
-    description: "Help provide quality education to underprivileged children in rural areas.",
-    imageUrl: "/images/campaigns/education.jpg",
-    goal: 25000,
-    raised: 18750,
-    daysLeft: 30,
-  },
-  {
-    id: "3",
-    title: "Clean Water Initiative",
-    description: "Bring clean and safe drinking water to communities in need.",
-    imageUrl: "/images/campaigns/water.jpg",
-    goal: 35000,
-    raised: 21000,
-    daysLeft: 25,
-  },
-  // Add more sample campaigns as needed
-];
+interface CampaignGridProps {
+  initialCampaigns: Campaign[];
+}
 
-export function CampaignGrid() {
+export function CampaignGrid({ initialCampaigns }: CampaignGridProps) {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+
+  if (campaigns.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">No active campaigns at the moment.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sampleCampaigns.map((campaign) => (
-        <CampaignCard key={campaign.id} campaign={campaign} />
+      {campaigns.map((campaign) => (
+        <CampaignCard key={campaign.$id} campaign={campaign} />
       ))}
     </div>
   );

@@ -9,7 +9,7 @@ const users = new Users(client);
 const databases = new Databases(client);
 
 // Database and collection IDs
-const CAMPAIGNS_DATABASE_ID = 'campaigns_db';
+const CAMPAIGNS_DATABASE_ID = 'barakah_db';
 const CAMPAIGNS_COLLECTION_ID = 'campaigns';
 
 export async function listCampaigns() {
