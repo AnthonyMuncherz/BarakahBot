@@ -1,3 +1,5 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
@@ -7,7 +9,7 @@ interface CampaignCardProps {
   campaign: Campaign;
 }
 
-export function CampaignCard({ campaign }: CampaignCardProps) {
+const CampaignCard = ({ campaign }: CampaignCardProps) => {
   const progress = Math.round((campaign.raised / campaign.goal) * 100);
 
   const formatCurrency = (amount: number) => {
@@ -24,24 +26,21 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
       {/* Campaign Image */}
       <div className="relative h-48 w-full">
         <Image
-          src={campaign.imageUrl}
+          src={campaign.imageUrl || "/placeholder.png"} // fallback
           alt={campaign.title}
           fill
           className="object-cover"
         />
       </div>
 
-      {/* Campaign Content */}
+      {/* Content */}
       <div className="p-4">
-        {/* Title */}
         <h3 className="text-xl font-semibold mb-2 line-clamp-1">
           {campaign.title}
         </h3>
-
-        {/* Description */}
         <p className="text-gray-600 mb-4 line-clamp-2">{campaign.description}</p>
 
-        {/* Progress Bar */}
+        {/* Progress */}
         <div className="mb-4">
           <Progress value={progress} className="h-2" />
           <div className="flex justify-between mt-2 text-sm text-gray-600">
@@ -62,7 +61,7 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Buttons */}
         <div className="flex gap-2">
           <Link
             href={`/campaigns/${campaign.$id}`}
@@ -80,4 +79,6 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
       </div>
     </div>
   );
-} 
+};
+
+export default CampaignCard;

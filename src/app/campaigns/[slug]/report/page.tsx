@@ -1,95 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { getCampaign, Campaign } from '@/lib/services/campaigns';
 import { Button } from '@/components/ui/button';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+export default function CampaignDetailPage() {
+  const { slug } = useParams();
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [loading, setLoading] = useState(true);
 
-const mockDonations = [
-  { name: 'Fatima Yousra', amount: 500000 },
-  { name: 'Jane Smith', amount: 3000040 },
-  { name: 'Ali Baba', amount: 200000 },
-  { name: 'Maria Lee', amount: 34450 },
-  { name: 'Ahmed Khan', amount: 333100 },
-];
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      try {
+        setLoading(true);
+        const data = await getCampaign(slug as string);
+        setCampaign(data);
+      } catch (err) {
+        console.error(err);
+        setCampaign(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-export default function DonationReport() {
-  const [showChart, setShowChart] = useState(false);
+    if (slug) fetchCampaign();
+  }, [slug]);
 
-  const data = {
-    labels: mockDonations.map((d) => d.name),
-    datasets: [
-      {
-        label: 'Donations (RM)',
-        data: mockDonations.map((d) => d.amount),
-        backgroundColor: [
-          '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
-        ],
-      },
-    ],
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    doc.text('Donation Report', 14, 16);
-    autoTable(doc, {
-      startY: 20,
-      head: [['Donor', 'Amount (RM)']],
-      body: mockDonations.map((donor) => [donor.name, `RM ${donor.amount}`]),
-    });
-    doc.save('donation-report.pdf');
-  };
-
-  const downloadCSV = () => {
-    const headers = 'Donor,Amount (RM)\n';
-    const rows = mockDonations.map((d) => `${d.name},${d.amount}`).join('\n');
-    const blob = new Blob([headers + rows], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'donation-report.csv';
-    link.click();
-  };
+  if (!campaign) {
+    return <div className="text-center py-20 text-red-500">Campaign not found</div>;
+  }
 
   return (
-    <div className="p-6 space-y-6 bg-white shadow rounded-md">
-      <h2 className="text-2xl font-bold text-brand-dark-green">Donation Breakdown</h2>
+    <div className="container mx-auto px-4 py-10 max-w-4xl">
+      <img
+        src={campaign.imageUrl || '/placeholder.png'}
+        alt={campaign.title}
+        className="w-full h-[300px] object-cover rounded-xl mb-6"
+      />
+      <h1 className="text-3xl font-bold text-[#2c5c4b] mb-4">{campaign.title}</h1>
+      <p className="text-gray-700 text-lg leading-relaxed mb-6">{campaign.description}</p>
 
-      <table className="w-full text-left border mt-4">
-        <thead>
-          <tr className="bg-muted text-sm">
-            <th className="px-4 py-2">Donor</th>
-            <th className="px-4 py-2">Amount (RM)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mockDonations.map((donor, index) => (
-            <tr key={index} className="border-t">
-              <td className="px-4 py-2">{donor.name}</td>
-              <td className="px-4 py-2">RM {donor.amount}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h2 className="text-2xl font-semibold text-[#2c5c4b] mt-10 mb-3">How We Use Your Donations</h2>
+      <p className="text-gray-700 mb-4">
+        Your contributions are securely collected and allocated directly to the campaign’s specific needs. We work with verified partners to ensure transparency and effectiveness. Funds are used for:
+      </p>
+      <ul className="list-disc list-inside text-gray-700 space-y-1">
+        <li>Purchasing essential supplies</li>
+        <li>Distributing aid to targeted locations</li>
+        <li>Monitoring and reporting donation usage</li>
+        <li>Ensuring compliance with donation ethics and policy</li>
+      </ul>
 
-      <div className="flex flex-wrap gap-4">
-        <Button onClick={() => setShowChart(!showChart)} variant="outline">
-          {showChart ? 'Hide' : 'Show'} Pie Chart
-        </Button>
-        <Button onClick={downloadPDF}>Download PDF</Button>
-        <Button onClick={downloadCSV} variant="ghost">
-          Download CSV
-        </Button>
+      <div className="flex gap-4 mt-8">
+        <Link href={`/campaigns/${slug}/donate`}>
+          <Button>Donate Again</Button>
+        </Link>
+        <Link href="/campaigns">
+          <Button variant="outline">Back to Campaigns</Button>
+        </Link>
       </div>
-
-      {showChart && (
-        <div className="max-w-md mt-6">
-          <Pie data={data} />
-        </div>
-      )}
     </div>
   );
 }
