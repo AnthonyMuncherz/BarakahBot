@@ -62,9 +62,17 @@ const initialCampaignFormData = {
   category: "",     // Added
 };
 
+// Predefined categories based on the enum in the campaigns collection
+const CAMPAIGN_CATEGORIES = [
+  'Education',
+  'Medical Aid',
+  'Mosque Building',
+  'Food Bank',
+  'Emergency'
+] as const;
+
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -72,57 +80,14 @@ export default function CampaignsPage() {
   // State for Create/Edit Dialog
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [currentCampaign, setCurrentCampaign] = useState<Campaign | null>(null);
   const [formData, setFormData] = useState(initialCampaignFormData);
-  const [newCategoryName, setNewCategoryName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
 
   useEffect(() => {
     fetchCampaigns();
-    fetchCategories();
-    // Add status and searchTerm as dependencies to refetch when filters change
+    // Remove fetchCategories since we're using predefined categories
   }, [searchTerm, selectedStatus]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch('/api/admin/categories');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-      const data = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategoryName.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/admin/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategoryName }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create category');
-      }
-
-      await fetchCategories();
-      setNewCategoryName("");
-      setIsCategoryDialogOpen(false);
-    } catch (error) {
-      console.error('Error creating category:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -334,162 +299,76 @@ export default function CampaignsPage() {
             </select>
 
             {/* Create Dialog */}
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog open={isCreateDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
+              if (!open) {
+                setIsCreateDialogOpen(false);
+                setIsEditDialogOpen(false);
+                setFormData(initialCampaignFormData);
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  New Campaign
+                  {isEditDialogOpen ? 'Edit Campaign' : 'New Campaign'}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle>Create New Campaign</DialogTitle>
+                  <DialogTitle>{isEditDialogOpen ? 'Edit Campaign' : 'Create Campaign'}</DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleCreateCampaign} className="space-y-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="title">Title</Label>
-                    <Input id="title" name="title" value={formData.title} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" name="description" value={formData.description} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="imageUrl">Image URL</Label>
-                    <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="goal">Goal Amount (MYR)</Label>
-                    <Input id="goal" name="goal" type="number" value={formData.goal} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
-                    <Select
-                      name="category"
-                      value={formData.category}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, category: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.$id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <form onSubmit={isEditDialogOpen ? handleUpdateCampaign : handleCreateCampaign}>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input id="title" name="title" value={formData.title} onChange={handleFormChange} required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea id="description" name="description" value={formData.description} onChange={handleFormChange} required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="imageUrl">Image URL</Label>
+                      <Input id="imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="goal">Goal Amount (MYR)</Label>
+                      <Input id="goal" name="goal" type="number" value={formData.goal} onChange={handleFormChange} required />
+                    </div>
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="category">Category</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CAMPAIGN_CATEGORIES.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <DialogFooter>
-                    <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Create
+                    <Button variant="outline" type="button" onClick={() => {
+                      setIsCreateDialogOpen(false);
+                      setIsEditDialogOpen(false);
+                      setFormData(initialCampaignFormData);
+                    }}>
+                      Cancel
                     </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            {/* Edit Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Edit Campaign</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleUpdateCampaign} className="space-y-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-title">Title</Label>
-                    <Input id="edit-title" name="title" value={formData.title} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-description">Description</Label>
-                    <Textarea id="edit-description" name="description" value={formData.description} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-imageUrl">Image URL</Label>
-                    <Input id="edit-imageUrl" name="imageUrl" value={formData.imageUrl} onChange={handleFormChange} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-goal">Goal Amount (MYR)</Label>
-                    <Input id="edit-goal" name="goal" type="number" value={formData.goal} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-raised">Raised Amount (MYR)</Label>
-                    <Input id="edit-raised" name="raised" type="number" value={formData.raised} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-daysLeft">Days Left</Label>
-                    <Input id="edit-daysLeft" name="daysLeft" type="number" value={formData.daysLeft} onChange={handleFormChange} required />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="edit-category">Category</Label>
-                    <Select
-                      name="category"
-                      value={formData.category}
-                      onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, category: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.$id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
                     <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Save Changes
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
-
-            {/* Category Management Dialog */}
-            <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  Add Category
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Category</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleCreateCategory} className="space-y-4">
-                  <div>
-                    <Label htmlFor="categoryName">Category Name</Label>
-                    <Input
-                      id="categoryName"
-                      value={newCategoryName}
-                      onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="Enter category name"
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting || !newCategoryName.trim()}
-                    >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating...
+                          {isEditDialogOpen ? 'Updating...' : 'Creating...'}
                         </>
                       ) : (
-                        'Create Category'
+                        isEditDialogOpen ? 'Save Changes' : 'Create Campaign'
                       )}
                     </Button>
                   </DialogFooter>
