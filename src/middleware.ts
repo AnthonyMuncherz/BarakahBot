@@ -79,6 +79,34 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Check if the route is an admin route
+  if (pathname.startsWith("/admin")) {
+    try {
+      // Get the session cookie
+      const sessionId = request.cookies.get("sessionId")?.value;
+
+      if (!sessionId) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+
+      // Get the current session
+      const session = await account.getSession("current");
+      
+      // Get the user
+      const user = await account.get();
+
+      // Check if user has admin role
+      if (!user.labels?.includes("admin")) {
+        return NextResponse.redirect(new URL("/access-denied", request.url));
+      }
+
+      return NextResponse.next();
+    } catch (error) {
+      // If there's an error (invalid session, etc.), redirect to login
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   // Allow the request to proceed
   return NextResponse.next();
 }
@@ -97,5 +125,7 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
     // Explicitly include protected routes if the above regex is too broad
     // '/dashboard/:path*',
+    "/admin/:path*",
+    "/api/admin/:path*",
   ],
 }; 

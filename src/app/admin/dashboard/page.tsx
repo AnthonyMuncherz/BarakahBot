@@ -1,38 +1,119 @@
-'use client';
-import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+"use client";
 
-export default function AdminDashboardPage() {
+import AdminLayout from "@/components/ui/admin/AdminLayout";
+import { Card } from "@/components/ui/card";
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { databases } from "@/lib/appwrite-client";
+
+interface DashboardMetrics {
+  totalUsers: number;
+  totalCampaigns: number;
+  totalDonations: number;
+  activeUsers: number;
+}
+
+export default function AdminDashboard() {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalUsers: 0,
+    totalCampaigns: 0,
+    totalDonations: 0,
+    activeUsers: 0,
+  });
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        // Fetch total users
+        const usersResponse = await databases.listDocuments(
+          "barakah_db",
+          "users"
+        );
+        
+        // Fetch total campaigns
+        const campaignsResponse = await databases.listDocuments(
+          "barakah_db",
+          "campaigns"
+        );
+
+        // Fetch total donations
+        const donationsResponse = await databases.listDocuments(
+          "barakah_db",
+          "donations"
+        );
+
+        setMetrics({
+          totalUsers: usersResponse.total,
+          totalCampaigns: campaignsResponse.total,
+          totalDonations: donationsResponse.total,
+          activeUsers: usersResponse.documents.filter(
+            (user: any) => user.status === "active"
+          ).length,
+        });
+      } catch (error) {
+        console.error("Error fetching metrics:", error);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
+
+  const metricsCards = [
+    {
+      title: "Total Users",
+      value: metrics.totalUsers,
+      icon: <Users className="w-8 h-8 text-blue-500" />,
+      description: "Registered users",
+    },
+    {
+      title: "Active Campaigns",
+      value: metrics.totalCampaigns,
+      icon: <Calendar className="w-8 h-8 text-green-500" />,
+      description: "Running campaigns",
+    },
+    {
+      title: "Total Donations",
+      value: metrics.totalDonations,
+      icon: <DollarSign className="w-8 h-8 text-yellow-500" />,
+      description: "All-time donations",
+    },
+    {
+      title: "Active Users",
+      value: metrics.activeUsers,
+      icon: <TrendingUp className="w-8 h-8 text-purple-500" />,
+      description: "Currently active users",
+    },
+  ];
+
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">📊 Admin Dashboard</h1>
+    <AdminLayout>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {metricsCards.map((metric) => (
+            <Card key={metric.title} className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">{metric.title}</p>
+                  <h3 className="text-2xl font-bold mt-2">{metric.value}</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {metric.description}
+                  </p>
+                </div>
+                {metric.icon}
+              </div>
+            </Card>
+          ))}
+        </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-2">Statistics Overview</h2>
-          <p>Total Campaigns: 42</p>
-          <p>Total Users: 1,230</p>
-          <p>Pending Verifications: 6</p>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-2">Campaign Approvals</h2>
-          <p>5 campaigns pending approval</p>
-          <Button asChild className="mt-4">
-            <Link href="/admin/verification">Go to Verification</Link>
-          </Button>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-2">User Management</h2>
-          <p>Manage and moderate user accounts</p>
-          <Button asChild className="mt-4">
-            <Link href="/admin/users">View Users</Link>
-          </Button>
-        </Card>
+        {/* Add more dashboard components here */}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

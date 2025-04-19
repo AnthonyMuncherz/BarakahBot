@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { 
   CalendarIcon, 
   HeartIcon, 
@@ -43,6 +44,7 @@ interface Donation {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
@@ -423,6 +425,32 @@ export default function DashboardPage() {
           </div>
         </Card>
       </div>
+
+      {/* Debug Information */}
+      <div className="bg-gray-100 p-4 rounded-md mt-8">
+        <h2 className="text-lg font-semibold mb-2">Debug Information</h2>
+        <pre className="whitespace-pre-wrap">
+          {JSON.stringify({ 
+            userId: user?.$id,
+            name: user?.name,
+            email: user?.email,
+            labels: user?.labels,
+            isAdmin: user?.labels?.includes("admin")
+          }, null, 2)}
+        </pre>
+      </div>
+
+      {/* Admin Panel Link */}
+      {user?.labels?.includes("admin") && (
+        <div className="mt-4">
+          <Button
+            onClick={() => router.push("/admin/dashboard")}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Go to Admin Panel
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

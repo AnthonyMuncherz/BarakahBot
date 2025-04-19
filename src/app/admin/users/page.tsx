@@ -1,98 +1,76 @@
 // app/admin/users/page.tsx
-'use client';
-import React, { useEffect, useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { UserIcon, TrashIcon } from 'lucide-react';
+"use client";
 
-interface User {
-  id: string;
+import { useState, useEffect } from "react";
+import AdminLayout from "@/components/ui/admin/AdminLayout";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { LoadingPage } from "@/components/ui/loading";
+import { databases } from "@/lib/appwrite-server";
+import { Models } from "appwrite";
+import { Edit2, Trash2, Search } from "lucide-react";
+
+interface User extends Models.Document {
   name: string;
   email: string;
-  status: 'active' | 'suspended';
+  status: boolean;
+  labels: string[];
 }
 
-export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [search, setSearch] = useState('');
+interface EditUserFormData {
+  name: string;
+  email: string;
+  status: string;
+  isAdmin: boolean;
+}
 
-  useEffect(() => {
-    // Mock data — replace with Appwrite fetch
-    setUsers([
-      { id: '1', name: 'Arnob Rizwan', email: 'arnob@example.com', status: 'active' },
-      { id: '2', name: 'Aiman Hakim', email: 'aiman@example.com', status: 'active' },
-      { id: '3', name: 'Alwan Syahmi', email: 'alwan@example.com', status: 'suspended' },
-      { id: '4', name: 'Rusaidi Omar', email: 'rusaidi@example.com', status: 'active' }
-    ]);
-  }, []);
-
-  const handleSuspend = (id: string) => {
-    setUsers(prev =>
-      prev.map(user =>
-        user.id === id ? { ...user, status: 'suspended' } : user
-      )
-    );
-  };
-
-  const handleActivate = (id: string) => {
-    setUsers(prev =>
-      prev.map(user =>
-        user.id === id ? { ...user, status: 'active' } : user
-      )
-    );
-  };
-
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
-  );
+export default async function UsersPage() {
+  const users = (await databases.listDocuments(
+    process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID!,
+    process.env.NEXT_PUBLIC_APPWRITE_USERS_COLLECTION_ID!
+  )).documents as User[];
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">👥 User Management</h1>
-
-      <Input
-        placeholder="Search users by name or email..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="mb-6"
-      />
-
-      <div className="grid gap-4">
-        {filteredUsers.map(user => (
-          <Card key={user.id} className="p-4 flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <UserIcon className="w-6 h-6 text-gray-500" />
-              <div>
-                <p className="font-medium">{user.name}</p>
-                <p className="text-sm text-gray-500">{user.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Badge
-                variant={user.status === 'active' ? 'secondary' : 'outline'}
-                className={user.status === 'suspended' ? 'text-red-600 border-red-600' : ''}
-              >
-                {user.status}
-              </Badge>
-              {user.status === 'active' ? (
-                <Button variant="destructive" onClick={() => handleSuspend(user.id)}>
-                  Suspend
-                </Button>
-              ) : (
-                <Button onClick={() => handleActivate(user.id)}>
-                  Activate
-                </Button>
-              )}
-              <Button variant="outline">
-                <TrashIcon className="w-4 h-4" />
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Labels</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((user) => (
+            <TableRow key={user.$id}>
+              <TableCell>{user.name}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.status ? "Active" : "Inactive"}</TableCell>
+              <TableCell>{user.labels.join(", ")}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
