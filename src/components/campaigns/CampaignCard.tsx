@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Campaign } from "@/lib/services/campaigns";
+import { motion } from "framer-motion";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -11,6 +13,7 @@ interface CampaignCardProps {
 
 const CampaignCard = ({ campaign }: CampaignCardProps) => {
   const progress = Math.round((campaign.raised / campaign.goal) * 100);
+  const isComingSoon = campaign.raised === 0;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-MY", {
@@ -22,15 +25,25 @@ const CampaignCard = ({ campaign }: CampaignCardProps) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <motion.div
+      className="bg-white rounded-lg shadow-md overflow-hidden"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.1 }}
+    >
       {/* Campaign Image */}
       <div className="relative h-48 w-full">
         <Image
-          src={campaign.imageUrl || "/placeholder.png"} // fallback
+          src={campaign.imageUrl || "/placeholder.png"}
           alt={campaign.title}
           fill
           className="object-cover"
         />
+        {isComingSoon && (
+          <div className="absolute top-2 left-2 animate-pulse">
+            <Badge className="bg-yellow-200 text-yellow-800">Coming Soon</Badge>
+          </div>
+        )}
       </div>
 
       {/* Content */}
@@ -69,15 +82,19 @@ const CampaignCard = ({ campaign }: CampaignCardProps) => {
           >
             Learn More
           </Link>
-          <Link
-            href={`/campaigns/${campaign.$id}/donate`}
-            className="flex-1 px-4 py-2 text-center text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
+          <button
+            disabled={isComingSoon}
+            className={`flex-1 px-4 py-2 text-center text-sm font-medium text-white rounded-md transition-colors ${
+              isComingSoon
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-primary hover:bg-primary/90'
+            }`}
           >
             Donate Now
-          </Link>
+          </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

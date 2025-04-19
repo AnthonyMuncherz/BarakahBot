@@ -3,20 +3,27 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     domains: [
-      'images.unsplash.com',     // Standard static image URLs
-      'source.unsplash.com',     // Dynamic random images
+      'images.unsplash.com',
+      'source.unsplash.com',
     ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',
       },
+      
       {
         protocol: 'http',
         hostname: '**',
       },
     ],
   },
+
+  i18n: {
+    locales: ['en', 'ms', 'zh', 'ta'],
+    defaultLocale: 'en',
+  },
+
   async headers() {
     return [
       {

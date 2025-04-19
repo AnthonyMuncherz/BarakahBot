@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import CampaignCard from './CampaignCard'; // ✅ default import
+import CampaignCard from './CampaignCard';
 import { Campaign } from '@/lib/services/campaigns';
 
 interface CampaignGridProps {
@@ -12,18 +12,13 @@ export function CampaignGrid({ initialCampaigns }: CampaignGridProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   useEffect(() => {
-    console.log('Initial campaigns:', initialCampaigns);
-    
-    // Only filter out campaigns without valid image URLs
     const filtered = initialCampaigns.filter((campaign) => {
-      const isValid = campaign.imageUrl && campaign.imageUrl.startsWith('http');
-      if (!isValid) {
-        console.log('Filtered out campaign:', campaign.title, 'due to invalid image URL:', campaign.imageUrl);
-      }
-      return isValid;
+      const hasImage = campaign.imageUrl && campaign.imageUrl.startsWith('http');
+      const notAyonima = campaign.title.trim().toLowerCase() !== 'ayonima';
+      const isActive = campaign.raised > 0; // 👈 hide upcoming
+      return hasImage && notAyonima && isActive;
     });
-    
-    console.log('Filtered campaigns:', filtered);
+
     setCampaigns(filtered);
   }, [initialCampaigns]);
 

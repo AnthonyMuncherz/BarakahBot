@@ -11,7 +11,7 @@ const Banner = () => {
     <div className="w-full bg-emerald-200/30 py-2">
       <div className="container max-w-screen-xl mx-auto text-center">
         <p className="text-sm text-brand-dark-green">
-          BarakahBot is Based on Malaysia, made for Malaysian
+          BarakahBot is Based in Malaysia, Made for Malaysians
         </p>
       </div>
     </div>
@@ -28,6 +28,7 @@ const Hero = () => {
             {/* Left content */}
             <AnimatedContainer>
               <motion.div
+                className="flex flex-col justify-center h-full"
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6 }}
@@ -76,18 +77,18 @@ const Hero = () => {
               </motion.div>
             </AnimatedContainer>
 
-            {/* Animated image column */}
+            {/* Right Image */}
             <motion.div
               className="flex justify-center items-center w-full"
               initial={{ opacity: 0, y: 40, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.6, duration: 0.7, ease: 'easeOut' }}
             >
-              <div className="w-full max-w-md overflow-hidden shadow-sm border border-muted rounded-md">
+              <div className="w-full max-w-md rounded-xl overflow-hidden border border-muted shadow-md">
                 <img
                   src="/images/hero222.png"
                   alt="Donate with BarakahBot"
-                  className="w-full object-cover"
+                  className="w-full h-auto object-cover"
                 />
               </div>
             </motion.div>

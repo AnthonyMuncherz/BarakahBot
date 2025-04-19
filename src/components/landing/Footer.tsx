@@ -1,28 +1,4 @@
-/**
- * Footer Component
- * 
- * The website footer containing branding, copyright information, and social links.
- * Features a responsive layout and dynamic year display.
- * Uses Lucide icons for social media links.
- * 
- * Components:
- * - Link: Next.js link component for navigation
- * - Lucide Icons: Instagram, Twitter, Send, Youtube, Copyright
- * 
- * Features:
- * - Responsive layout (switches between column and row)
- * - Dynamic copyright year
- * - Social media links with hover effects
- * - Consistent branding with main site
- * 
- * Visual Elements:
- * - Border top for separation
- * - Muted text colors for secondary information
- * - Hover effects on interactive elements
- * - Proper spacing and alignment
- * 
- * Props: None
- */
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -30,36 +6,35 @@ import { Instagram, Twitter, Send, Youtube, Copyright } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="border-t border-border/40 py-8">
-      <div className="container max-w-screen-xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
-        {/* Left Side: Brand and Copyright */}
-        <div className="flex flex-col items-center md:items-start gap-2">
-          <Link href="/" className="text-2xl font-bold mb-2">
+    <footer className="border-t border-border/40 bg-[#fdfaf5] py-12 px-6">
+      <div className="container max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+        
+        {/* Brand & Copyright */}
+        <div>
+          <Link href="/" className="text-2xl font-bold text-[#2c5c4b]">
             BarakahBot
           </Link>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Copyright className="w-4 h-4" />
-            <span>BarakahBot {new Date().getFullYear()}. All right reserved</span>
+            <span>BarakahBot {new Date().getFullYear()}. All rights reserved.</span>
           </div>
         </div>
 
-        {/* Middle: Quick Links */}
-        <div className="flex flex-col items-center md:items-start gap-3">
-          <h3 className="font-semibold text-lg mb-2">Quick Links</h3>
-          <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">
-            About Us
-          </Link>
-          <Link href="/faq" className="text-muted-foreground hover:text-primary transition-colors">
-            FAQ
-          </Link>
-          <Link href="/zakatbot" className="text-muted-foreground hover:text-primary transition-colors">
-            Calculate Zakat
-          </Link>
+        {/* Quick Links */}
+        <div>
+          <h3 className="font-semibold text-lg text-[#2c5c4b] mb-3">Quick Links</h3>
+          <ul className="flex flex-col gap-2 text-muted-foreground">
+            <li><Link href="/about" className="hover:text-primary">About Us</Link></li>
+            <li><Link href="/faq" className="hover:text-primary">FAQ</Link></li>
+            <li><Link href="/zakatbot" className="hover:text-primary">Calculate Zakat</Link></li>
+            <li><Link href="/privacy" className="hover:text-primary">Privacy Policy</Link></li>
+            <li><Link href="/terms" className="hover:text-primary">Terms & Conditions</Link></li>
+          </ul>
         </div>
 
-        {/* Right Side: Social Links */}
-        <div className="flex flex-col items-center md:items-start gap-3">
-          <h3 className="font-semibold text-lg mb-2">Connect With Us</h3>
+        {/* Social Media */}
+        <div>
+          <h3 className="font-semibold text-lg text-[#2c5c4b] mb-3">Connect With Us</h3>
           <div className="flex gap-4 text-muted-foreground">
             <Link href="#" aria-label="Instagram" className="hover:text-primary">
               <Instagram className="w-5 h-5" />
@@ -75,9 +50,31 @@ const Footer = () => {
             </Link>
           </div>
         </div>
+
+        {/* Newsletter */}
+        <div>
+          <h3 className="font-semibold text-lg text-[#2c5c4b] mb-3">Subscribe to Newsletter</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Get the latest updates and campaigns.
+          </p>
+          <form className="flex w-full max-w-sm">
+            <input
+              type="email"
+              placeholder="Your email"
+              className="flex-1 px-4 py-2 rounded-l-md border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              className="bg-[#2c5c4b] text-white px-4 py-2 rounded-r-md hover:bg-[#244b3d] transition-colors"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;
