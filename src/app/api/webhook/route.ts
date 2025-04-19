@@ -29,14 +29,14 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 const mapPaymentMethodToAppwrite = (stripeMethod: string): string => {
   switch (stripeMethod.toLowerCase()) {
     case 'card':
-      return 'credit_card';
+      return 'card';
     case 'fpx':
-      return 'bank_transfer';
+      return 'fpx';
     case 'grabpay':
+      return 'grabpay';
     case 'alipay':
-      return 'e_wallet';
     default:
-      return 'credit_card'; // fallback to credit_card
+      return 'other'; // fallback to other
   }
 };
 
@@ -130,6 +130,7 @@ export async function POST(request: Request) {
           timestamp: new Date().toISOString(),
           payment_status: 'completed',
           payment_method: paymentMethod,
+          stripe_session_id: session.id
         });
 
         const doc = await databases.createDocument(
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
             timestamp: new Date().toISOString(),
             payment_status: 'completed',
             payment_method: paymentMethod,
+            stripe_session_id: session.id
           },
           // Updated permissions for the document owner
           [`read("user:${userId}")`, `read("users")`]
