@@ -14,7 +14,6 @@
  * - Responsive grid layout
  * - Animated icons with spring effect
  * - Card animations with directional variants
- * - Navigation arrows for mobile scrolling
  * 
  * Data Structure:
  * programs = [
@@ -128,20 +127,6 @@ const Programs = () => {
             ))}
           </div>
         </AnimatedContainer>
-        
-        <motion.div 
-          className="flex justify-center gap-2 mt-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <button className="w-8 h-8 rounded-full bg-white border border-brand-dark-green/20 flex items-center justify-center hover:bg-brand-dark-green/5 transition-colors">
-            <span aria-hidden="true">←</span>
-          </button>
-          <button className="w-8 h-8 rounded-full bg-white border border-brand-dark-green/20 flex items-center justify-center hover:bg-brand-dark-green/5 transition-colors">
-            <span aria-hidden="true">→</span>
-          </button>
-        </motion.div>
       </div>
     </section>
   );
