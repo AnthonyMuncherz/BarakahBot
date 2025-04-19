@@ -1,3 +1,5 @@
+Okay, here is the updated and detailed README.md file, tailored for a hackathon context and explaining the different modules based on the provided code.
+
 # BarakahBot: Revolutionizing Zakat Collection and Distribution
 
 **Project for UM Hackathon 2025**
@@ -181,3 +183,115 @@ Follow these steps to get BarakahBot running on your local machine.
     ```bash
     git clone https://github.com/your-username/barakahbot.git
     cd barakahbot
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment Variables**:
+    Create a `.env.local` file in the root of your project. This file will contain the API keys and endpoint URLs for the services used. **Do NOT commit this file to your repository.**
+
+    ```
+    # OpenRouter Configuration (for ZakatBot AI)
+    OPENROUTER_API_KEY=your_openrouter_key
+
+    # Appwrite Configuration (Database, Auth, Users)
+    # Public keys/endpoints are safe to expose in frontend code
+    NEXT_PUBLIC_APPWRITE_PROJECT_ID=your_appwrite_project_id
+    NEXT_PUBLIC_APPWRITE_ENDPOINT=your_appwrite_endpoint # e.g., https://cloud.appwrite.io/v1 or your self-hosted endpoint
+
+    # Server-side API Key - Keep this secret!
+    APPWRITE_API_KEY=your_appwrite_api_key 
+
+    # Appwrite Database ID (for donation history, email verifications, etc.)
+    NEXT_PUBLIC_APPWRITE_DATABASE_ID=your_appwrite_db_id # e.g., 'barakah_db'
+
+    # Mailgun Configuration (for sending verification emails)
+    MAILGUN_API_KEY=your_mailgun_api_key
+    MAILGUN_DOMAIN=your_mailgun_domain # e.g., 'mg.yourdomain.com'
+
+    # Application URL (used for email verification links and Stripe redirects)
+    # Use localhost for local development
+    NEXT_PUBLIC_APP_URL=http://localhost:3000 
+
+    # Stripe Configuration (for payment processing)
+    # Public key is safe to expose in frontend code
+    NEXT_PUBLIC_STRIPE_PUBLIC_KEY=your_stripe_public_key 
+
+    # Server-side Secret Key - Keep this secret!
+    STRIPE_SECRET_KEY=your_stripe_secret_key 
+
+    # Stripe Webhook Secret (for verifying incoming Stripe events) - Keep this secret!
+    STRIPE_WEBHOOK_SECRET=your_webhook_secret 
+
+    # Stripe Payment Method Configuration ID (specific to your Stripe account and country)
+    # This ID specifies which payment methods are enabled for checkout
+    STRIPE_PAYMENT_METHOD_CONFIGURATION=your_payment_config_id 
+    ```
+    Replace the placeholder values (`your_...`) with your actual credentials obtained from the respective service providers.
+
+4.  **Set up Appwrite Database Collections**:
+    You need to create the following collections in your Appwrite project:
+    *   `email_verifications`: To store temporary email verification tokens.
+        *   Attributes:
+            *   `user_id` (String)
+            *   `token` (String)
+            *   `expires_at` (DateTime)
+        *   Permissions: Read/Write for specific roles or ensure your API key has necessary permissions.
+    *   `donation_history`: To record successful donations.
+        *   Attributes:
+            *   `user_id` (String)
+            *   `amount` (Float)
+            *   `currency` (String)
+            *   `timestamp` (DateTime)
+            *   `payment_status` (String, e.g., 'completed')
+            *   `payment_method` (String, e.g., 'card', 'bank_transfer', 'e_wallet')
+        *   Permissions: Ensure your API key has write permissions. Users might need read permissions for their own documents.
+
+5.  **Set up Stripe Webhook (for local testing)**:
+    To receive payment success notifications from Stripe while running locally, you need to use the Stripe CLI to forward webhook events.
+    *   Install the Stripe CLI: Follow the instructions [here](https://stripe.com/docs/stripe-cli).
+    *   Log in to your Stripe account via the CLI: `stripe login`
+    *   Start forwarding webhooks:
+        ```bash
+        stripe listen --forward-to localhost:3000/api/webhook
+        ```
+    *   The CLI will provide you with a `whsec_...` secret. Add this as your `STRIPE_WEBHOOK_SECRET` in the `.env.local` file.
+
+6.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+    Your application should now be running at `http://localhost:3000`.
+
+## Database Structure
+
+The application primarily interacts with the following collections in Appwrite:
+
+*   **Users**: Appwrite's built-in Users collection manages user accounts, including email, name, and verification status.
+*   **`email_verifications`**: (Custom Collection) Stores temporary tokens issued during the email registration verification process. Documents are short-lived and deleted after use or expiry.
+*   **`donation_history`**: (Custom Collection) Records details of each successful donation transaction processed through Stripe. Linked to the user via `user_id`.
+*   **`Campaigns`**: (Conceptual/Mocked in current dashboard) A collection intended to store details about various fundraising campaigns, their targets, descriptions, etc. The current dashboard uses mock data but the structure would support real campaign tracking.
+
+## Deployment
+
+The frontend application (BarakahBot) is designed to be deployed on platforms like **Vercel** or Netlify, leveraging Next.js capabilities.
+
+The backend services (Appwrite) should be hosted separately. For this project, Appwrite is assumed to be running on a custom server (like `https://appwrite.ctrlz.my/v1`) for better control and potential compliance requirements, distinct from the frontend hosting.
+
+Stripe and Mailgun are external cloud services.
+
+## Team
+
+Developed by Team Sigma Bois:
+*   Nur Aiman - Full Stack Engineer
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+*BarakahBot: Making Zakat simple, secure, and impactful.*
