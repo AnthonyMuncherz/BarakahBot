@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useZakatContext } from '@/context/ZakatContext';
+import { stateThresholds, GOLD_RATE, GOLD_GRAMS } from '@/lib/zakat/stateThresholds';
 
 interface CalculatorProps {
   onCalculate: (amount: number) => void;
@@ -9,6 +11,9 @@ interface CalculatorProps {
 
 const Calculator = ({ onCalculate }: CalculatorProps) => {
   const router = useRouter();
+  const { selectedState } = useZakatContext();
+  const stateNisab = stateThresholds[selectedState];
+
   const [assets, setAssets] = useState({
     cash: 0,
     gold: 0,
@@ -20,21 +25,13 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
   const [isCalculated, setIsCalculated] = useState(false);
   const [calculatedAmount, setCalculatedAmount] = useState(0);
 
-  const [goldPrice, setGoldPrice] = useState(85); // Nisab value in grams of gold
-  const [silverPrice, setSilverPrice] = useState(595); // Nisab value in grams of silver
-  
-  const [goldValue, setGoldValue] = useState(270); // Default price per gram in MYR
-  const [silverValue, setSilverValue] = useState(4.5); // Default price per gram in MYR
-
   const calculateTotal = () => {
     return Object.values(assets).reduce((sum, value) => sum + value, 0);
   };
   
   const calculateNisab = () => {
-    // Return the lower of gold and silver nisab values
-    const goldNisab = goldPrice * goldValue;
-    const silverNisab = silverPrice * silverValue;
-    return Math.min(goldNisab, silverNisab);
+    // Use the state-specific Nisab values
+    return Math.min(stateNisab.cash.nisab, stateNisab.gold.nisab);
   };
 
   const calculateZakat = () => {
@@ -145,6 +142,30 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
           />
         </div>
         
+        <div>
+          <label className="block text-sm font-medium mb-1">Property for Sale (MYR)</label>
+          <input
+            type="number"
+            name="propertyForSale"
+            value={assets.propertyForSale || ''}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            placeholder="0"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Business Inventory (MYR)</label>
+          <input
+            type="number"
+            name="businessInventory"
+            value={assets.businessInventory || ''}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+            placeholder="0"
+          />
+        </div>
+        
         <div className="pt-4 mt-2 border-t border-border">
           <div className="flex justify-between mb-2 text-sm">
             <span className="font-medium">Total Assets:</span>
@@ -152,7 +173,7 @@ const Calculator = ({ onCalculate }: CalculatorProps) => {
           </div>
           
           <div className="flex justify-between mb-2 text-sm">
-            <span className="font-medium">Nisab Threshold:</span>
+            <span className="font-medium">Nisab Threshold ({selectedState}):</span>
             <span>MYR {calculateNisab().toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
           
