@@ -1,36 +1,36 @@
 /**
  * Navbar Component
- * 
+ *
  * The main navigation bar for BarakahBot, featuring responsive design and authentication state.
  * Displays different navigation items and buttons based on user authentication status.
  * Uses the AuthContext for user state management.
- * 
+ *
  * Components:
  * - Button: UI component for action buttons
  * - Skeleton: Loading state placeholder
  * - Link: Next.js link component for navigation
- * 
+ *
  * Features:
  * - Responsive navigation with mobile support
  * - Dynamic navigation items based on auth state
  * - Active link highlighting
  * - Loading state handling
  * - Sticky positioning with backdrop blur
- * 
+ *
  * Context:
  * - useAuth: Provides user authentication state and functions
- * 
+ *
  * Navigation Items:
  * - Base: Home, ZakatBot, Campaigns, About Us
  * - Authenticated: Adds Dashboard
  * - Auth Buttons: Login/Register or Welcome/Logout
- * 
+ *
  * Props: None
  */
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -39,9 +39,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Navbar = () => {
   const pathname = usePathname();
-  const { user, logout, isLoading } = useAuth();
-  
-  // Base navigation items (visible to all)
+  const { user, logout, isLoading, fetchUser } = useAuth();
+
+  useEffect(() => {
+    // Ensure the user is fetched on navbar mount
+    fetchUser?.();
+  }, [fetchUser]);
+
   const baseNavItems = [
     { name: 'Home', path: '/' },
     { name: 'ZakatBot', path: '/zakatbot' },
@@ -49,7 +53,6 @@ const Navbar = () => {
     { name: 'About Us', path: '/about' },
   ];
 
-  // Combine nav items, adding Dashboard if logged in
   const navItems = [
     ...baseNavItems,
     ...(user ? [{ name: 'Dashboard', path: '/dashboard' }] : []),
@@ -63,13 +66,11 @@ const Navbar = () => {
             <span className="font-bold text-xl text-brand-dark-green">BarakahBot</span>
           </Link>
         </div>
-        
+
         <nav className="hidden md:flex items-center space-x-4">
           {navItems.map((item) => {
-            // Ensure dashboard link doesn't flash during initial load
             if (item.path === '/dashboard' && isLoading) return null;
-            // Render dashboard link only if user exists (covers !isLoading case)
-            if (item.path === '/dashboard' && !user) return null; 
+            if (item.path === '/dashboard' && !user) return null;
 
             const isActive = pathname === item.path;
             return (
@@ -91,13 +92,16 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           {isLoading ? (
             <>
-              {/* Skeletons for both buttons during loading */}
               <Skeleton className="h-9 w-16 rounded-md" /> 
               <Skeleton className="h-9 w-20 rounded-md" />
             </>
           ) : user ? (
             <>
-              {user.name && <span className="text-sm text-muted-foreground hidden sm:inline mr-2">Welcome, {user.name}!</span>} {/* Added margin */}
+              {user.name && (
+                <span className="text-sm text-muted-foreground hidden sm:inline mr-2">
+                  Welcome, {user.name}!
+                </span>
+              )}
               <Button variant="ghost" onClick={logout} className="text-brand-dark-green font-medium">
                 Logout
               </Button>
@@ -118,4 +122,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;
