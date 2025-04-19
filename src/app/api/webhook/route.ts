@@ -143,7 +143,9 @@ export async function POST(request: Request) {
             timestamp: new Date().toISOString(),
             payment_status: 'completed',
             payment_method: paymentMethod,
-          }
+          },
+          // Add permissions for the document owner
+          [`read("user:${userId}")`, `read("users")`]
         );
         console.log('Donation record created in Appwrite:', doc);
       } catch (dbError) {
