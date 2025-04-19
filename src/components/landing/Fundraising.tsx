@@ -7,8 +7,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
@@ -19,21 +17,18 @@ const fundraisingCampaigns = [
     title: "Victims of Disastrous Inferno",
     organizer: "MyCARE",
     collected: "RM 12,500.00",
-    link: "/campaigns/inferno",
   },
   {
     imageSrc: "/images/fr2.png", // 🕊️ Palestine
     title: "Fight For Palestinian Right",
     organizer: "Mercy Malaysia",
     collected: "RM 50,000.00",
-    link: "/campaigns/palestine",
   },
   {
     imageSrc: "/images/fr3.png", // 🌊 Flood Relief
     title: "For Our Beloved Flood Victims",
     organizer: "MyCARE",
     collected: "RM 45,000.50",
-    link: "/campaigns/flood",
   },
 ];
 
@@ -71,7 +66,10 @@ const Fundraising = () => {
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
-                    <Link href={campaign.link} className="text-primary font-medium hover:underline text-sm">
+                    <Link
+                      href="/campaigns/test_campaign_2/donate"
+                      className="text-primary font-medium hover:underline text-sm"
+                    >
                       Learn more & start donating
                     </Link>
                   </CardFooter>
@@ -79,11 +77,6 @@ const Fundraising = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-
-          <div className="flex justify-center gap-2 mt-4">
-            <CarouselPrevious className="static translate-y-0 bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90" />
-            <CarouselNext className="static translate-y-0 bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90" />
-          </div>
         </Carousel>
       </div>
     </section>
