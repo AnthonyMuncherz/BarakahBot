@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function ScholarshipPage() {
   return (
@@ -8,7 +9,11 @@ export default function ScholarshipPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           
           {/* Left Content */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
             <h1 className="text-4xl md:text-5xl font-bold text-brand-dark-green mb-6">
               🎓 Zakat-Funded Scholarship Program
             </h1>
@@ -39,21 +44,21 @@ export default function ScholarshipPage() {
                 🧮 Calculate Zakat
               </Link>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right Image */}
-          <div className="relative">
-            <div className="aspect-square rounded-2xl bg-white/50 backdrop-blur-sm p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-dark-green/10 to-transparent" />
-              <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-sm">
-                <img
-                  src="https://cdn.pixabay.com/photo/2017/03/12/13/41/scholarship-2136164_960_720.jpg"
-                  alt="Scholarship Zakat Illustration"
-                  className="w-full h-full object-contain rounded-xl"
-                />
-              </div>
-            </div>
-          </div>
+          {/* Right Image - Smaller, No Border */}
+          <motion.div
+            className="flex justify-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <img
+              src="/images/scholarship.png"
+              alt="Scholarship Zakat Illustration"
+              className="w-3/4 max-w-md object-cover rounded-2xl shadow-md"
+            />
+          </motion.div>
         </div>
       </div>
     </section>
