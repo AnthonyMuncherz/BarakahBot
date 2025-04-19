@@ -75,36 +75,23 @@ export default function DashboardPage() {
 
     const fetchDonations = async () => {
       try {
-        console.log('Current user:', {
-          id: user.$id,
-          name: user.name,
-          email: user.email
-        });
-        
         // First, check if user exists
         if (!user.$id) {
-          console.error('No user ID available');
           setDonations([]);
           setTotalDonations(0);
           return;
         }
-
-        console.log('Fetching donations for user ID:', user.$id);
         
-        // Try to list all documents first
+        // Try to list all documents
         const response = await databases.listDocuments(
           'barakah_db',
           'donation_history'
         );
 
-        console.log('Raw API Response:', response);
-
-        // Filter documents manually for the user
+        // Filter documents for the user
         const userDonations = response.documents.filter(doc => doc.user_id === user.$id);
-        console.log('Filtered donations for user:', userDonations);
 
         if (userDonations.length === 0) {
-          console.log('No donations found for user after filtering');
           setDonations([]);
           setTotalDonations(0);
           return;
@@ -115,41 +102,21 @@ export default function DashboardPage() {
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         );
 
-        const donationDocs = sortedDonations.map((doc) => {
-          console.log('Processing donation document:', {
-            id: doc.$id,
-            userId: doc.user_id,
-            amount: doc.amount,
-            status: doc.payment_status,
-            timestamp: doc.timestamp
-          });
-          
-          return {
-            $id: doc.$id,
-            user_id: doc.user_id,
-            amount: doc.amount,
-            currency: doc.currency,
-            timestamp: doc.timestamp,
-            payment_status: doc.payment_status,
-            payment_method: doc.payment_method,
-          };
-        });
+        const donationDocs = sortedDonations.map((doc) => ({
+          $id: doc.$id,
+          user_id: doc.user_id,
+          amount: doc.amount,
+          currency: doc.currency,
+          timestamp: doc.timestamp,
+          payment_status: doc.payment_status,
+          payment_method: doc.payment_method,
+        }));
 
-        console.log('Final processed donations:', donationDocs);
         setDonations(donationDocs);
-        
         const total = donationDocs.reduce((sum, doc) => sum + doc.amount, 0);
-        console.log('Total donations calculated:', total);
         setTotalDonations(total);
       } catch (error) {
-        console.error('Error fetching donations:', error);
-        if (error instanceof Error) {
-          console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-          });
-        }
+        console.error('Error fetching donations');
         setDonations([]);
         setTotalDonations(0);
       }
@@ -430,20 +397,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </Card>
-      </div>
-
-      {/* Debug Information */}
-      <div className="bg-gray-100 p-4 rounded-md mt-8">
-        <h2 className="text-lg font-semibold mb-2">Debug Information</h2>
-        <pre className="whitespace-pre-wrap">
-          {JSON.stringify({ 
-            userId: user?.$id,
-            name: user?.name,
-            email: user?.email,
-            labels: user?.labels,
-            isAdmin: user?.labels?.includes("admin")
-          }, null, 2)}
-        </pre>
       </div>
 
       {/* Admin Panel Link */}
