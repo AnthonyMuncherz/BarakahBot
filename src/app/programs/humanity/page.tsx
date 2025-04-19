@@ -46,7 +46,7 @@ export default function HumanityPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <img
-              src="/images/humanity.png"
+              src="/images/dr2.png"
               alt="Humanity Zakat Illustration"
               className="w-3/4 max-w-md object-cover rounded-2xl shadow-md"
             />

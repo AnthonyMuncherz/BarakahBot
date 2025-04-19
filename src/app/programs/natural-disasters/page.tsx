@@ -53,7 +53,7 @@ export default function NaturalDisasterPage() {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <img
-              src="/images/natural-disaster.png"
+              src="/images/dr.png"
               alt="Illustration showing humanitarian aid for natural disaster victims"
               className="w-full max-w-md object-cover rounded-2xl shadow-md"
             />
