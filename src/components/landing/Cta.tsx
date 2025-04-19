@@ -1,37 +1,16 @@
-/**
- * CTA (Call to Action) Component
- * 
- * A prominent section encouraging users to take action and donate.
- * Features compelling copy and a video placeholder for engagement.
- * Uses custom styling and components for visual appeal.
- * 
- * Components:
- * - Button: UI component for action button
- * - PlayCircle: Lucide icon for video play button
- * - Image: Next.js optimized image component
- * 
- * Features:
- * - Responsive two-column layout
- * - Engaging headline and subtext
- * - Video section with play button overlay
- * - Custom color scheme using Tailwind CSS
- * 
- * Visual Elements:
- * - Primary background color
- * - Contrasting text colors
- * - Shadow effects for depth
- * - Hover states for interactive elements
- * 
- * Props: None
- */
+'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { PlayCircle } from 'lucide-react';
+import Link from 'next/link';
 
-const Cta = () => {
+interface CtaProps {
+  campaignSlug?: string; // Optional, default fallback if not provided
+}
+
+const Cta = ({ campaignSlug = 'test_campaign_2' }: CtaProps) => {
+  const donateUrl = `/campaigns/${campaignSlug}/donate`;
+
   return (
     <section className="bg-primary text-primary-foreground py-16 md:py-24">
       <div className="container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -49,8 +28,10 @@ const Cta = () => {
               in need with <span className="font-medium">transparency, trust and honesty</span>.
             </p>
           </div>
-          <Link 
-            href="/donate" 
+
+          {/* ✅ Dynamically linked button */}
+          <Link
+            href={donateUrl}
             className="inline-block px-8 py-3 bg-[#C9E4D9] text-[#0F3D23] font-medium rounded-md hover:bg-[#B8D9CA] transition-colors shadow-sm"
           >
             Donate now
@@ -62,7 +43,6 @@ const Cta = () => {
           <div className="w-full h-full bg-secondary/50 flex items-center justify-center">
             <p className="text-primary-foreground font-medium">Video Placeholder</p>
           </div>
-          {/* Optional Play button overlay */}
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
             <PlayCircle className="w-16 h-16 text-white/90 cursor-pointer hover:text-white transition-colors" />
           </div>
@@ -72,4 +52,4 @@ const Cta = () => {
   );
 };
 
-export default Cta; 
+export default Cta;
