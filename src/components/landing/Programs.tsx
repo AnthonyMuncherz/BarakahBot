@@ -1,36 +1,3 @@
-/**
- * Programs Component
- * 
- * Displays the various donation programs available through BarakahBot.
- * Features animated cards with icons and descriptions for each program type.
- * Uses Framer Motion for smooth animations and transitions.
- * 
- * Components:
- * - AnimatedContainer: Wrapper for animated content
- * - Card/CardContent: UI components for program display
- * - Lucide Icons: GraduationCap, Waves, HeartPulse
- * 
- * Features:
- * - Responsive grid layout
- * - Animated icons with spring effect
- * - Card animations with directional variants
- * 
- * Data Structure:
- * programs = [
- *   {
- *     icon: LucideIcon,
- *     title: string,
- *     description: string,
- *     link: string
- *   }
- * ]
- * 
- * Animation Variants:
- * - iconVariants: Controls icon animation with spring effect
- * 
- * Props: None
- */
-
 'use client';
 
 import React from 'react';
@@ -59,20 +26,19 @@ const programs = [
     description: 'A society that helps and supports each other is a stronger and more resilient society.',
     link: '/programs/humanity',
   },
-  // Add more programs if needed
 ];
 
 const iconVariants = {
   hidden: { scale: 0, rotate: -180 },
-  visible: { 
-    scale: 1, 
+  visible: {
+    scale: 1,
     rotate: 0,
     transition: {
-      type: "spring",
+      type: 'spring',
       stiffness: 200,
-      damping: 20
-    }
-  }
+      damping: 20,
+    },
+  },
 };
 
 const Programs = () => {
@@ -80,7 +46,7 @@ const Programs = () => {
     <section className="py-16 md:py-24 bg-brand-cream/50">
       <div className="container max-w-screen-xl mx-auto">
         <AnimatedContainer>
-          <motion.h2 
+          <motion.h2
             className="text-3xl md:text-4xl font-bold text-brand-dark-green text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -93,13 +59,10 @@ const Programs = () => {
             {programs.map((program, index) => (
               <Card
                 key={index}
-                animated
-                direction={index === 0 ? 'left' : index === 1 ? 'up' : 'right'}
-                delay={index * 0.2}
                 className="flex flex-col bg-white/50 backdrop-blur-sm"
               >
                 <CardContent className="pt-6">
-                  <motion.div 
+                  <motion.div
                     className="mb-4 flex justify-center"
                     variants={iconVariants}
                     initial="hidden"
@@ -115,8 +78,8 @@ const Programs = () => {
                     {program.description}
                   </p>
                   <div className="mt-auto text-center">
-                    <Link 
-                      href={program.link} 
+                    <Link
+                      href={program.link}
                       className="text-brand-dark-green font-medium hover:underline"
                     >
                       View more
@@ -132,4 +95,4 @@ const Programs = () => {
   );
 };
 
-export default Programs; 
+export default Programs;

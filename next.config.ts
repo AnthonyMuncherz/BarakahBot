@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['images.unsplash.com'], // Allow images from unsplash.com
+    domains: [
+      'images.unsplash.com',     // Standard static image URLs
+      'source.unsplash.com',     // Dynamic random images
+    ],
   },
   async headers() {
     return [
