@@ -5,7 +5,7 @@ import { PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface CtaProps {
-  campaignSlug?: string; // Optional, default fallback if not provided
+  campaignSlug?: string;
 }
 
 const Cta = ({ campaignSlug = 'test_campaign_2' }: CtaProps) => {
@@ -14,6 +14,7 @@ const Cta = ({ campaignSlug = 'test_campaign_2' }: CtaProps) => {
   return (
     <section className="bg-primary text-primary-foreground py-16 md:py-24">
       <div className="container max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        
         {/* Text Content */}
         <div className="space-y-8">
           <div className="space-y-4">
@@ -29,7 +30,7 @@ const Cta = ({ campaignSlug = 'test_campaign_2' }: CtaProps) => {
             </p>
           </div>
 
-          {/* ✅ Dynamically linked button */}
+          {/* Donate Button */}
           <Link
             href={donateUrl}
             className="inline-block px-8 py-3 bg-[#C9E4D9] text-[#0F3D23] font-medium rounded-md hover:bg-[#B8D9CA] transition-colors shadow-sm"
@@ -38,13 +39,20 @@ const Cta = ({ campaignSlug = 'test_campaign_2' }: CtaProps) => {
           </Link>
         </div>
 
-        {/* Image/Video Placeholder */}
+        {/* Video Embed */}
         <div className="relative aspect-video rounded-lg overflow-hidden shadow-md">
-          <div className="w-full h-full bg-secondary/50 flex items-center justify-center">
-            <p className="text-primary-foreground font-medium">Video Placeholder</p>
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-            <PlayCircle className="w-16 h-16 text-white/90 cursor-pointer hover:text-white transition-colors" />
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            src="/images/dr3.mp4"
+          >
+            Your browser does not support the video tag.
+          </video>
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+            <PlayCircle className="w-16 h-16 text-white/80" />
           </div>
         </div>
       </div>
