@@ -23,7 +23,7 @@ import { Loader2 } from 'lucide-react';
 // };
 
 // Predefined categories based on the image and the enum created
-const categories = ["All Campaigns", "Education", "Medical Aid", "Mosque Building", "Food Bank"];
+const categories = ["All Campaigns", "Education", "Medical Aid", "Mosque Building", "Food Bank", "Emergency"];
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

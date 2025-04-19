@@ -19,11 +19,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter // Added for create/edit forms
+  DialogFooter
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label"; // Added for forms
-import { Textarea } from "@/components/ui/textarea"; // Added for description
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 // Remove direct Appwrite client import
 // import { databases } from "@/lib/appwrite-client"; 
 
@@ -39,6 +46,11 @@ interface Campaign {
   $createdAt: string;
 }
 
+interface Category {
+  $id: string;
+  name: string;
+}
+
 // Add state for forms
 const initialCampaignFormData = {
   title: "",
@@ -52,6 +64,7 @@ const initialCampaignFormData = {
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -59,15 +72,57 @@ export default function CampaignsPage() {
   // State for Create/Edit Dialog
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [currentCampaign, setCurrentCampaign] = useState<Campaign | null>(null);
   const [formData, setFormData] = useState(initialCampaignFormData);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   useEffect(() => {
     fetchCampaigns();
+    fetchCategories();
     // Add status and searchTerm as dependencies to refetch when filters change
   }, [searchTerm, selectedStatus]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategoryName }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create category');
+      }
+
+      await fetchCategories();
+      setNewCategoryName("");
+      setIsCategoryDialogOpen(false);
+    } catch (error) {
+      console.error('Error creating category:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -309,13 +364,24 @@ export default function CampaignsPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="category">Category</Label>
-                    <select id="category" name="category" value={formData.category} onChange={handleFormChange} className="border rounded-md p-2">
-                      <option value="">Select Category</option>
-                      <option value="Education">Education</option>
-                      <option value="Medical Aid">Medical Aid</option>
-                      <option value="Mosque Building">Mosque Building</option>
-                      <option value="Food Bank">Food Bank</option>
-                    </select>
+                    <Select
+                      name="category"
+                      value={formData.category}
+                      onValueChange={(value) => 
+                        setFormData(prev => ({ ...prev, category: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.$id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
@@ -361,19 +427,70 @@ export default function CampaignsPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="edit-category">Category</Label>
-                    <select id="edit-category" name="category" value={formData.category} onChange={handleFormChange} className="border rounded-md p-2">
-                      <option value="">Select Category</option>
-                      <option value="Education">Education</option>
-                      <option value="Medical Aid">Medical Aid</option>
-                      <option value="Mosque Building">Mosque Building</option>
-                      <option value="Food Bank">Food Bank</option>
-                    </select>
+                    <Select
+                      name="category"
+                      value={formData.category}
+                      onValueChange={(value) => 
+                        setFormData(prev => ({ ...prev, category: value }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.$id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" type="button" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
                     <Button type="submit" disabled={isSubmitting}>
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+
+            {/* Category Management Dialog */}
+            <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  Add Category
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Category</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateCategory} className="space-y-4">
+                  <div>
+                    <Label htmlFor="categoryName">Category Name</Label>
+                    <Input
+                      id="categoryName"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Enter category name"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || !newCategoryName.trim()}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        'Create Category'
+                      )}
                     </Button>
                   </DialogFooter>
                 </form>
