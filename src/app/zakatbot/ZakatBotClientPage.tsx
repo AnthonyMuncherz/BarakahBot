@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import ChatInterface from '@/components/zakatbot/ChatInterface';
 import StateSelector from '@/components/zakatbot/StateSelector';
+import { useZakatContext, ZakatProvider } from '@/context/ZakatContext';
 import { stateThresholds } from '@/lib/zakat/stateThresholds';
 
-export default function ZakatBotClientPage() {
-  const [selectedState, setSelectedState] = useState('Selangor');
+function ZakatBotContent() {
+  const { selectedState } = useZakatContext();
   const threshold = stateThresholds[selectedState];
 
   return (
@@ -23,7 +24,7 @@ export default function ZakatBotClientPage() {
             </p>
           </div>
 
-          <StateSelector selectedState={selectedState} setSelectedState={setSelectedState} />
+          <StateSelector />
 
           <div className="text-center text-sm text-muted-foreground mb-6">
             <p>
@@ -32,7 +33,7 @@ export default function ZakatBotClientPage() {
             {threshold.cash.notes && <p className="text-xs mt-1">💡 {threshold.cash.notes}</p>}
           </div>
 
-          <ChatInterface selectedState={selectedState} />
+          <ChatInterface />
         </div>
       </div>
 
@@ -45,5 +46,13 @@ export default function ZakatBotClientPage() {
         </div>
       </footer>
     </main>
+  );
+}
+
+export default function ZakatBotClientPage() {
+  return (
+    <ZakatProvider>
+      <ZakatBotContent />
+    </ZakatProvider>
   );
 }
