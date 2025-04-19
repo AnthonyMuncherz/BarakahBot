@@ -12,27 +12,24 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
-// 🔁 Use Unsplash Source API
-const getImageUrl = (query: string) =>
-  `https://source.unsplash.com/featured/800x600?${encodeURIComponent(query)}`;
-
+// ✅ Local image URLs
 const fundraisingCampaigns = [
   {
-    imageQuery: "fire disaster relief",
+    imageSrc: "/images/fr1.png", // 🔥 Fire Disaster
     title: "Victims of Disastrous Inferno",
     organizer: "MyCARE",
     collected: "RM 12,500.00",
     link: "/campaigns/inferno",
   },
   {
-    imageQuery: "palestine aid",
+    imageSrc: "/images/fr2.png", // 🕊️ Palestine
     title: "Fight For Palestinian Right",
     organizer: "Mercy Malaysia",
     collected: "RM 50,000.00",
     link: "/campaigns/palestine",
   },
   {
-    imageQuery: "flood disaster malaysia",
+    imageSrc: "/images/fr3.png", // 🌊 Flood Relief
     title: "For Our Beloved Flood Victims",
     organizer: "MyCARE",
     collected: "RM 45,000.50",
@@ -50,10 +47,7 @@ const Fundraising = () => {
           </h2>
         </div>
 
-        <Carousel
-          opts={{ align: "start", loop: true }}
-          className="w-full"
-        >
+        <Carousel opts={{ align: "start", loop: true }} className="w-full">
           <CarouselContent className="-ml-4">
             {fundraisingCampaigns.map((campaign, index) => (
               <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
@@ -61,7 +55,7 @@ const Fundraising = () => {
                   <CardContent className="p-0">
                     <div className="aspect-[4/3] bg-muted overflow-hidden">
                       <Image
-                        src={getImageUrl(campaign.imageQuery)}
+                        src={campaign.imageSrc}
                         alt={campaign.title}
                         width={400}
                         height={300}
@@ -85,6 +79,7 @@ const Fundraising = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
+
           <div className="flex justify-center gap-2 mt-4">
             <CarouselPrevious className="static translate-y-0 bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90" />
             <CarouselNext className="static translate-y-0 bg-brand-light-green text-brand-dark-green hover:bg-brand-light-green/90" />
