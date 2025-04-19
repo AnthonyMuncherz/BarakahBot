@@ -45,14 +45,11 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Login failed');
 
-      const userDetailsResponse = await fetch('/api/auth/me');
-      const loggedInUser = await userDetailsResponse.json();
+      setSuccessMessage('Login successful! Redirecting to dashboard...');
 
-      if (loggedInUser?.labels?.includes('admin')) {
-        router.push('/admin/dashboard');
-      } else {
+      setTimeout(() => {
         router.push('/dashboard');
-      }
+      }, 1200);
     } catch (err: any) {
       setError(err.message || 'An error occurred during login.');
     } finally {
