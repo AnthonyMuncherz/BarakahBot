@@ -1,16 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
-
-interface Campaign {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  goal: number;
-  raised: number;
-  daysLeft: number;
-}
+import { Campaign } from "@/lib/services/campaigns";
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -20,9 +11,9 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
   const progress = Math.round((campaign.raised / campaign.goal) * 100);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-MY", {
       style: "currency",
-      currency: "USD",
+      currency: "MYR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
@@ -74,13 +65,13 @@ export function CampaignCard({ campaign }: CampaignCardProps) {
         {/* Actions */}
         <div className="flex gap-2">
           <Link
-            href={`/campaigns/${campaign.id}`}
+            href={`/campaigns/${campaign.$id}`}
             className="flex-1 px-4 py-2 text-center text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
           >
             Learn More
           </Link>
           <Link
-            href={`/campaigns/${campaign.id}/donate`}
+            href={`/campaigns/${campaign.$id}/donate`}
             className="flex-1 px-4 py-2 text-center text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 transition-colors"
           >
             Donate Now
